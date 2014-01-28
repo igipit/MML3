@@ -30,7 +30,7 @@ namespace MML3
 
 		typedef		Matrix<T, M_PROP::GE, M_SHAPE::RE, M_ORD::ROW>			type;
 		typedef		Matrix<T, M_PROP::SYM, M_SHAPE::RE, M_ORD::ROW>			sym_type;
-		
+
 		// the whole variety of General matrices
 		struct General
 		{
@@ -152,12 +152,12 @@ namespace MML3
 				};
 
 			};
-			
+
 		};
-		
+
 	};
 
-	
+
 
 
 
@@ -179,7 +179,7 @@ namespace MML3
 		typedef MO							order_t;
 		typedef iSet						iset_t;
 
-	
+
 		enum IS :bool{	RowMajor= std::is_same<MO, M_ORD::ROW>::value,
 						ColMajor= !RowMajor,
 						RE		= std::is_same<M_SHAPE::RE, MS>::value,
@@ -204,7 +204,7 @@ namespace MML3
 		Matrix(const sub_matrix_t& o)										{assign(o);}
 		Matrix(const const_sub_mat_t& o)									{assign(o); }
 		Matrix(const T* src, index_t src_size, index_t nr, index_t nc)		{assign(src,src_size,nr,nc); }
-		~Matrix() { data_.free(); }
+		~Matrix() =default;
 
 		Matrix&		resize(index_t nr, index_t nc = 1);
 		void		swap(Matrix& o)											{data_.swap(o.data_); std::swap(nr_, o.nr_); std::swap(nc_, o.nc_); }
@@ -315,7 +315,7 @@ namespace MML3
 		const_sub_mat_t	column(const iSet& c)const							{ static_assert(IS::RE, ""); return const_sub_mat_t(*this, all_ridx(), c); }
 		const_sub_mat_t	column(iSet&&	c)const								{ static_assert(IS::RE, ""); return const_sub_mat_t(*this, all_ridx(), std::move(c)); }
 
-		
+
 		//------------------------------------//
 		//           IO                       //
 		//------------------------------------//
@@ -350,10 +350,11 @@ namespace MML3
 		// number of components for every  Shape
 		index_type	num_elements_(index_type nr, index_type nc)const;
 
-		
+    private:
 		// the class data
-		index_t nr_ = 0, nc_ = 0;
 		array_ data_;
+		index_t nr_ = 0, nc_ = 0;
+
 
 	};
 
@@ -443,8 +444,8 @@ namespace MML3
 #ifdef MML3_TEST_INDEX_ON_ACCESS
 		 test_indexes(r, c);
 #endif
-		if_necessary::swap(r, c); 
-		return at_(r - ONE_, c - ONE_); 
+		if_necessary::swap(r, c);
+		return at_(r - ONE_, c - ONE_);
 	}
 	template<typename T, typename MP, typename MS, typename MO>
 	inline const T&	Matrix<T, MP, MS, MO>::operator()(index_t r, index_t c)const
@@ -453,8 +454,8 @@ namespace MML3
 		test_indexes(r, c);
 #endif
 
-		if_necessary::swap(r, c); 
-		return at_(r - ONE_, c - ONE_); 
+		if_necessary::swap(r, c);
+		return at_(r - ONE_, c - ONE_);
 	}
 	template<typename T, typename MP, typename MS, typename MO>
 	inline T& 			Matrix<T, MP, MS, MO>::operator()(index_t r)
@@ -463,7 +464,7 @@ namespace MML3
 		test_indexes(r, 1);
 #endif
 
-		return at_(r - ONE_, 0); 
+		return at_(r - ONE_, 0);
 	}
 	template<typename T, typename MP, typename MS, typename MO>
 	inline const T& 	Matrix<T, MP, MS, MO>::operator()(index_t r)const
@@ -471,7 +472,7 @@ namespace MML3
 #ifdef MML3_TEST_INDEX_ON_ACCESS
 		test_indexes(r, 1);
 #endif
-		return at_(r - ONE_, 0); 
+		return at_(r - ONE_, 0);
 	}
 
 
@@ -675,7 +676,7 @@ inline auto Matrix<T, MP, MS, MO>::num_elements_(index_type nr, index_type nc)co
 		// ID di forma
 		// ID di orientamento
 
-		std::uint64_t type_[7] = { nr_, nc_, type<index_t>::id(), type<T>::id(), MP::ID, MS::ID,MO::ID };
+		std::int64_t type_[7] = { nr_, nc_, type<index_t>::id(), type<T>::id(), MP::ID, MS::ID,MO::ID };
 		f.write(reinterpret_cast<const char*>(type_), sizeof(type_));
 		f.write(reinterpret_cast<const char*>(begin()), size()*sizeof(T));
 		return f.good() ? 0 : -2;
@@ -689,7 +690,7 @@ inline auto Matrix<T, MP, MS, MO>::num_elements_(index_type nr, index_type nc)co
 		if (!f.is_open())
 			return -1;
 		// leggo l'intestazione
-		std::uint64_t type_[7];
+		std::int64_t type_[7];
 		f.read(reinterpret_cast<char*>(type_), sizeof(type_));
 		if (!f.good())
 			return -2;

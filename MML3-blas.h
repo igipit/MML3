@@ -3,14 +3,14 @@
 
 
 // ===========================================================================
-// 
+//
 // C++ cblas implementation for some cblas functions
 // ===========================================================================
 namespace MML3{
 
 
 
-	
+
 
 	template< typename T>
 	struct Cblas
@@ -39,7 +39,7 @@ namespace MML3{
 
 		static void gemv(const Option::Order orderA, const  Option::Transpose TransA, const size_t M, const size_t N, const T alpha, const T *A, const size_t lda, const T *X, const int incX, const T beta, T *Y, const int incY);
 
-		
+
 
 		//@}
 
@@ -194,7 +194,7 @@ namespace MML3{
 
 		bool Trans = !(TransA == Option::Transpose::NoTrans);
 
-		bool isRowMajor = (order == Option::Order::RowMajor);
+		bool isRowMajor = (orderA == Option::Order::RowMajor);
 
 		//CHECK_ARGS12(GEMV,order,TransA,M,N,alpha,A,lda,X,incX,beta,Y,incY);
 
@@ -351,7 +351,7 @@ namespace MML3{
 					{
 						for (j = 0; j != n2; j++)
 							C[ldc * i + j] += temp * G[ldg * k + j];
-				
+
 					}
 				}
 			}
@@ -372,14 +372,14 @@ namespace MML3{
 		else if (TransF &&   !TransG)
 		{
 			for (k = 0; k < K; k++)
-			for (i = 0; i < n1; i++) 
+			for (i = 0; i < n1; i++)
 			{
 				const T temp = alpha * F[ldf * k + i];
-				if (temp != 0.0) 
+				if (temp != 0.0)
 				{
-					for (j = 0; j < n2; j++) 
+					for (j = 0; j < n2; j++)
 						C[ldc * i + j] += temp * G[ldg * k + j];
-					
+
 				}
 			}
 
@@ -426,12 +426,12 @@ namespace MML3{
 		if (alpha == 0.0 && beta == 1.0)
 			return;
 
-		if (isRowMajor) 
+		if (isRowMajor)
 		{
 			n1 = M;
 			n2 = N;
 		}
-		else 
+		else
 		{
 			n1 = N;
 			n2 = M;
@@ -440,21 +440,21 @@ namespace MML3{
 		}
 
 		/* form  y := beta*y */
-		if (beta == 0.0) 
+		if (beta == 0.0)
 		{
-			for (i = 0; i < n1; i++) 
+			for (i = 0; i < n1; i++)
 			{
-				for (j = 0; j < n2; j++) 
+				for (j = 0; j < n2; j++)
 				{
 					C[ldc * i + j] = 0.0;
 				}
 			}
 		}
-		else if (beta != 1.0) 
+		else if (beta != 1.0)
 		{
-			for (i = 0; i < n1; i++) 
+			for (i = 0; i < n1; i++)
 			{
-				for (j = 0; j < n2; j++) 
+				for (j = 0; j < n2; j++)
 				{
 					C[ldc * i + j] *= beta;
 				}
@@ -464,17 +464,17 @@ namespace MML3{
 		if (alpha == 0.0)
 			return;
 
-		if (isLeft && isUpper) 
+		if (isLeft && isUpper)
 		{
 			/* form  C := alpha*A*B + C */
-			for (i = 0; i < n1; i++) 
+			for (i = 0; i < n1; i++)
 			{
-				for (j = 0; j < n2; j++) 
+				for (j = 0; j < n2; j++)
 				{
 					const T temp1 = alpha * B[ldb * i + j];
 					T temp2 = 0.0;
 					C[i * ldc + j] += temp1 * A[i * lda + i];
-					for (k = i + 1; k < n1; k++) 
+					for (k = i + 1; k < n1; k++)
 					{
 						const T Aik = A[i * lda + k];
 						C[k * ldc + j] += Aik * temp1;
@@ -485,16 +485,16 @@ namespace MML3{
 			}
 
 		}
-		else if (isLeft && !isUpper) 
+		else if (isLeft && !isUpper)
 		{
 			/* form  C := alpha*A*B + C */
-			for (i = 0; i < n1; i++) 
+			for (i = 0; i < n1; i++)
 			{
-				for (j = 0; j < n2; j++) 
+				for (j = 0; j < n2; j++)
 				{
 					const T temp1 = alpha * B[ldb * i + j];
 					T temp2 = 0.0;
-					for (k = 0; k < i; k++) 
+					for (k = 0; k < i; k++)
 					{
 						const T Aik = A[i * lda + k];
 						C[k * ldc + j] += Aik * temp1;
@@ -505,12 +505,12 @@ namespace MML3{
 			}
 
 		}
-		else if (!isLeft && isUpper) 
+		else if (!isLeft && isUpper)
 		{
 			/* form  C := alpha*B*A + C */
-			for (i = 0; i < n1; i++) 
+			for (i = 0; i < n1; i++)
 			{
-				for (j = 0; j < n2; j++) 
+				for (j = 0; j < n2; j++)
 				{
 					const T temp1 = alpha * B[ldb * i + j];
 					T temp2 = 0.0;
@@ -525,18 +525,18 @@ namespace MML3{
 			}
 
 		}
-		else if (!isLeft && !isUpper) 
+		else if (!isLeft && !isUpper)
 		{
 
 			/* form  C := alpha*B*A + C */
 
-			for (i = 0; i < n1; i++) 
+			for (i = 0; i < n1; i++)
 			{
-				for (j = 0; j < n2; j++) 
+				for (j = 0; j < n2; j++)
 				{
 					const T temp1 = alpha * B[ldb * i + j];
 					T temp2 = 0.0;
-					for (k = 0; k < j; k++) 
+					for (k = 0; k < j; k++)
 					{
 						const T Ajk = A[j * lda + k];
 						C[i * ldc + k] += temp1 * Ajk;

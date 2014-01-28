@@ -4,21 +4,15 @@
 
 #include"MML3-Matrix.h"
 #include"MML3-Vector.h"
-#include"MML3-fsarray.h"
+#include"MML3-StaticArray.h"
 #include"MML3-Timer.h"
 #include"MML3-Math.h"
 #include<iostream>
 #include<iomanip>
-#if defined( MML3_LAPACK ) &&  MML3_LAPACK >0
 #include"MML3-MatrixAlgorithms.h"
-#endif
-
-#if defined( MML3_LAPACK ) &&  MML3_LAPACK >0
-#include"MML3-LinearSolver.h"
-#endif
 
 double poly(double x)
-{  
+{
 	double y=0.0;
 
 	const int sz=21;
@@ -328,7 +322,7 @@ int main()
 			std::cout << "Test imax :";
 			Matrix A = {  100., -10, 1, 2, 3, 4, 5, 7, 9, 1000, -34 };
 			index_t imax1 = MML3::Algorithm::imax(A);
-			
+
 			if (imax1 != 10)
 			{
 				std::cout << "Errore\n";
@@ -342,7 +336,7 @@ int main()
 			std::cout << "Test imin :";
 			A = { 1, 2, 5, 7, -3, -10, -100, -7, -9 };
 			index_t imin1 = MML3::Algorithm::imin(A);
-			
+
 			//std::cout << A << std::endl;
 
 			if (imin1 != 7)

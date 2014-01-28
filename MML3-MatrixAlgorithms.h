@@ -21,7 +21,7 @@ namespace MML3
 		// y=y+a*x  ( BLAS: ?AXPY)
 		template<typename T, typename MP, typename MS, typename MO>
 		Matrix<T, MP, MS, MO>&		axpy(T a, const Matrix<T, MP, MS, MO>& x, Matrix<T, MP, MS, MO>& y);
-		
+
 		template<typename T>
 		Vector<T>&					axpy(T a, const Vector<T>& x, Vector<T>& y);
 
@@ -31,26 +31,26 @@ namespace MML3
 		Matrix<T, MP, MS, MO>&		scal(Matrix<T, MP, MS, MO>& x, T a);
 		template<typename T>
 		Vector<T>&					scal(Vector<T>& x, T a);
-		
+
 
 		// scalar product  ps(A)= \sum_{i,j} A_ij* A_ij
 		template<typename T, typename MP, typename MS, typename MO>
 		T							dot(const Matrix<T, MP, MS, MO>& x, const Matrix<T, MP, MS, MO>& y);
-		
+
 		template<typename T>
 		T							dot(const Vector<T>& x, const Vector<T>& y);
 
 		// euclidean norm : norm2(A) =sqrt( ps(A,A))
 		template<typename T, typename MP, typename MS, typename MO>
 		T							norm2(const Matrix<T, MP, MS, MO>& x);
-		
+
 		template<typename T>
 		T							norm2(const Vector<T>& x);
 
 		// ritorna l'indice vettoriale della componente di valore massimo dell'Matrix (1-base)
 		template<typename T, typename MP, typename MS, typename MO>
 		size_t						imax(const Matrix<T, MP, MS, MO>& a);
-		
+
 		template<typename T>
 		size_t						imax(const Vector<T>& a);
 
@@ -60,7 +60,7 @@ namespace MML3
 		template<typename T>
 		size_t						imin(const Vector<T>& a);
 
-		
+
 
 		// matrix product GE * GE (BLAS GEMM)
 		// C= op(A) * op(B)      where  op(A)=A if  trA==false and  op(A)=A^T if trA==true
@@ -114,7 +114,7 @@ namespace MML3
 
 
 		////////////////////////////////////////////////////////////////////////////////////////////////////
-		//										IMPLEMENTATION      
+		//										IMPLEMENTATION
 		////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -155,11 +155,11 @@ namespace MML3
 		template<typename T>
 		inline T dot(const Vector<T>& x, const Vector<T>& y)
 		{
-			
+
 			if (x.size() != y.size())
 				throw std::range_error(" vector dot : size mismatch");
 
-			return Cblas<T>::dot(s.size(), x.begin(), y.begin());
+			return Cblas<T>::dot(x.size(), x.begin(), y.begin());
 		}
 
 		//-------------------------------
@@ -172,7 +172,7 @@ namespace MML3
 		}
 
 		template<typename T>
-		
+
 		inline T  norm2(const Vector<T>& x)
 		{
 			return Cblas<T>::nrm2(x.size(), x.begin());
@@ -205,7 +205,7 @@ namespace MML3
 		{
 			return Cblas<T>::iamax((const int)a.size(), a.begin(), 1) + MML3::BASE::OFFSET;
 		}
-		
+
 		template<typename T>
 		inline size_t imax(const Vector<T>& a)
 		{
@@ -279,16 +279,16 @@ namespace MML3
 				tmp = true;
 			}
 			Option::Transpose TRA = trA ? Option::Trans : Option::NoTrans;
-		
+
 
 			// if needed resize C
 			size_t szC = trA ? A.ncols() : A.nrows();
 			C.resize(szC);
 			size_t K = trA ? A.nrows() : A.ncols();
-			
+
 			if (B.size()!= K)
 				throw std::runtime_error("Cbla::gemm size");
-			Cblas<T>::gemv(A.CblasOrder(), TRA, A.nrows(), A.ncols(), alpha, A.begin(), A.leading_dim(), pB->begin(), 1, beta, C.begin(), 1);
+			Cblas<T>::gemv(A.CblasOrder(), TRA, A.nrows(), A.ncols(), T(1), A.begin(), A.leading_dim(), pB->begin(), 1, T(0), C.begin(), 1);
 			if (tmp)
 				delete pB;
 			return C;
@@ -297,7 +297,7 @@ namespace MML3
 
 
 			//---------------------------------------------
-			//  C= A * B  with A General and B symmetric 
+			//  C= A * B  with A General and B symmetric
 			//---------------------------------------------
 			template<typename T, typename MO>
 			Matrix<T, M_PROP::GE, M_SHAPE::RE, MO>& product(const	Matrix<T, M_PROP::GE,	M_SHAPE::RE, MO>& A,
@@ -314,15 +314,15 @@ namespace MML3
 
 				Cblas<T>::symm(B.CblasOrder(), Option::Right,
 					B.CblasSymUpLo(), M, N,
-					alpha, B.begin(), B.leading_dim(),
-					A.begin(), A.leading_dim(), beta,
+					T(1), B.begin(), B.leading_dim(),
+					A.begin(), A.leading_dim(), T(0),
 					C.begin(), C.leading_dim());
 				return C;
 			}
 
 
 			//---------------------------------------------
-			//  C= A * B  with A Symmetric and B GEneral 
+			//  C= A * B  with A Symmetric and B GEneral
 			//---------------------------------------------
 			template<typename T, typename MO>
 			Matrix<T, M_PROP::GE, M_SHAPE::RE, MO>& product(const Matrix<T, M_PROP::SYM, M_SHAPE::RE, MO>& A,
@@ -346,7 +346,7 @@ namespace MML3
 
 
 
-		
+
 
 
 

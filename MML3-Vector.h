@@ -25,7 +25,7 @@ namespace MML3
 		Vector&		operator=(const std::initializer_list<T>& s) { return assign(s.begin(), s.size()); }
 		Vector&		assign(const T* o, size_t sz)			{ resize(sz); std::copy(o, o + sz, p_.get()); return *this; }
 		void		swap(Vector& o)							{ std::swap(p_,o.p_); std::swap(sz_, o.sz_); }
-		Vector&		resize(size_t sz)						{ if (sz_ != sz) swap(Vector(sz)); return *this; }
+		Vector&		resize(size_t sz)						{ if (sz_ != sz){Vector tmp(sz);swap(tmp);}  return *this; }
 		void		free()									{ p_.reset(); sz_ = 0; }
 
 		// ACCESSORS
@@ -55,8 +55,9 @@ namespace MML3
 		bool		print(std::ostream& os)const;
 
 	private:
+	    std::unique_ptr<T[]>  p_;
+
 		size_t				sz_ = 0;
-		std::unique_ptr<T[]>  p_ = nullptr;
 
 	};
 
@@ -91,13 +92,13 @@ namespace MML3
 	//////////////////////////////////////////////////////////////////////////////////////////////
 	template<typename T>
 	inline T&	Vector<T>::operator()(size_t i)
-	{ 
+	{
 #ifdef MML3_TEST_INDEX_ON_ACCESS
 		assert(i>=Base_ && i < sz_+Base_);
 #endif
-		return p_[i - Base_]; 
+		return p_[i - Base_];
 	}
-	
+
 	template<typename T>
 	inline const T&	Vector<T>::operator()(size_t i)const
 	{
@@ -132,7 +133,7 @@ namespace MML3
 		const T*	src = o.p_.get();
 		for (size_t i = 0; i != sz_; ++i)
 			dest[i] += src[i];
-		return *this; 
+		return *this;
 	}
 
 	template<typename T>
@@ -185,16 +186,16 @@ namespace MML3
 	}
 
 	template<typename T>
-	inline Vector<T>&	Vector<T>::transform(T func(T)) 
+	inline Vector<T>&	Vector<T>::transform(T func(T))
 	{
-		
+
 		for (size_t i = 0; i != sz_; ++i)
 			p_[i] = func(p_[i]);
 		return *this;
 	}
-	
-	
-	
+
+
+
 
 
 

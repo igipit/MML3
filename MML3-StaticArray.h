@@ -9,8 +9,7 @@
 namespace MML3
 {
 
-template<class T, size_t N1, size_t...  Sizes>
-class st_array;
+
 
 
 
@@ -65,10 +64,10 @@ class st_array:public array_data_<T,N1,N2>
 {
 	typedef array_data_<T, N1, N2> base_class;
 	typedef typename std::conditional<(N2>1), size_t, void > ::type idx2_t;
-	
+
 public:
 
-	
+
 
 	st_array() = default;
 	st_array(const st_array&) = default;
@@ -88,16 +87,16 @@ public:
 
 	using base_class::operator();
 
-	
+
 	using base_class::at_0b;
 
-	
+
 
 	st_array&	operator=(const st_array&) = default;
 	st_array&	operator=(const std::initializer_list<T>& s){ return assign(s.begin(), s.size()); }
 	st_array&	operator=(const std::initializer_list<std::initializer_list<T>>& s){ return assign(s); }
 	st_array&	operator=(T value){ return fill(value);}
-	
+
 	st_array&	assign(const T* src, size_t src_sz);
 	st_array&	assign(const std::initializer_list<std::initializer_list<T>>& s);
 	st_array&	fill(T value){ std::fill_n(begin(), size(), value); return *this; }
@@ -113,12 +112,12 @@ public:
 	st_array&	operator/=(T);
 	st_array&	operator+()									{ return *this; }
 	st_array	operator-()const;
-	
+
 	bool		print(std::ostream& os)const;
 
 	st_array&	set_identity()
-	{ 
-		assert(N1 == N2);  
+	{
+		assert(N1 == N2);
 		*this = T(0);
 		for (size_t i = 0; i != N1; ++i)
 			at_0b(i, i) = T(1);
@@ -171,11 +170,11 @@ inline st_array<T, N1, N2>   operator/(const st_array<T, N1, N2> x, T val)
 
 // array product
 
-template<typename T, size_t M1, size_t M2, size_t N1, size_t N2>
-st_array<T, 1, 1> product(const st_array<T, M1, M2>, const st_array<T, N1, N2>& B)
-{
-	static_assert(false, "Not allowed: array size mismatch ");
-}
+//template<typename T, size_t M1, size_t M2, size_t N1, size_t N2>
+//st_array<T, 1, 1> product(const st_array<T, M1, M2>, const st_array<T, N1, N2>& B)
+//{
+//	static_assert(false, "Not allowed: array size mismatch ");
+//}
 
 
 template<typename T, size_t M, size_t N, size_t K>
@@ -226,9 +225,10 @@ T dot(const st_array<T, M, N>& A, const st_array<T, M, N >& B)
 {
 
 	T acc(0);
-	const T* v = begin();
+	const T* a = A.begin();
+	const T* b = B.begin();
 	for (size_t m = 0; m != M*N; ++m)
-		acc += v[m] * v[m];
+		acc += a[m] * b[m];
 	return sqrt(acc);
 }
 
@@ -244,7 +244,7 @@ T dot(const st_array<T, M, N>& A, const st_array<T, M, N >& B)
 
 template<class T, size_t N1, size_t N2>
 inline auto st_array<T, N1, N2>::assign(const std::initializer_list<std::initializer_list<T>>& s)->st_array&
-{ 
+{
 	size_t nr = std::min(N1, s.size());
 
 	const std::initializer_list<T>* p_r = s.begin();
@@ -252,12 +252,12 @@ inline auto st_array<T, N1, N2>::assign(const std::initializer_list<std::initial
 	{
 
 		size_t nc = std::min(N2, p_r->size());
-		std::copy(p_r->begin(), p_r->begin() + nc, p_[r]);
+		std::copy(p_r->begin(), p_r->begin() + nc, operator[](r));
 		++p_r;
 	}
 		return *this;
-	
-	
+
+
 }
 
 
@@ -315,7 +315,7 @@ template<typename T, size_t N1, size_t N2>
 inline auto st_array<T, N1, N2>::operator*=(T val)->st_array&
 {
 	T* dest = begin();
-	
+
 	for (size_t i = 0; i != N1*N2; ++i)
 		dest[i] *= val;
 	return *this;
