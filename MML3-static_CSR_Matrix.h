@@ -11,10 +11,9 @@ namespace MML3
 {
 
 
-	template<	typename	VALUE_TYPE,				/* il tipo delle componenti della matrice    */
-				typename	IDX_TYPE	= int_t,    /* il tipo intero degli indici della matrice */
-				class       MP			= M_PROP::GE
-			>
+	template<  typename	VALUE_TYPE,	/* il tipo delle componenti della matrice    */
+                   typename     IDX_TYPE= int_t,    /* il tipo intero degli indici della matrice */
+                   class        MP	= M_PROP::GE>
 	class static_sparse_CSR_Matrix;
 
 	template<typename T>
@@ -201,11 +200,11 @@ private:
 	column_val_array_t		col_val_;
 
 	// row_pos_[] ha dimensione nrows+1 e contiene la posizione ( a partire da 1) in col_idx_ e col_val_ del primo elemento di ogni riga:
-	// row_pos_[0]-1 è la posizione in  col_idx_ del primo indice di colonna della riga 0
-	// row_pos_[1]-1 è la posizione in  col_idx_ del primo indice di colonna della riga 1
+	// row_pos_[0]-1 ï¿½ la posizione in  col_idx_ del primo indice di colonna della riga 0
+	// row_pos_[1]-1 ï¿½ la posizione in  col_idx_ del primo indice di colonna della riga 1
 	// ...
 	// row_pos_[nrows()] contiene il numero totale di elementi diversi da zero
-	// il numero di elementi diversi da zero nella riga i-esima (0-base) è sempre dato da rsz_[i+1] - rsz_[i]
+	// il numero di elementi diversi da zero nella riga i-esima (0-base) ï¿½ sempre dato da rsz_[i+1] - rsz_[i]
 	
 	
 	/// ritorna la posizione 1-based della componente (r,c) all'interno di col_idx se l'elemento esiste, ritorna 0  altrimenti
@@ -269,7 +268,7 @@ void static_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 
 
 /// ritorna la posizione 1-based della componente (r,c) all'interno di col_idx se l'elemento esiste, ritorna 0  altrimenti
-/// essendo gli indici di colonna ordinati (per ogni riga) si può fare una ricerca piu' efficente, perlomeno quando gli 
+/// essendo gli indici di colonna ordinati (per ogni riga) si puï¿½ fare una ricerca piu' efficente, perlomeno quando gli 
 /// elementi sono molti. Probabilmente con pochi elementi per riga la ricerca sequanziale e' la piu' veloce
 template<typename	VAL, typename	IDX, typename MP >
 size_t static_sparse_CSR_Matrix<VAL, IDX, MP>::find_position_1b_(index_t r, index_t c)const
@@ -468,7 +467,7 @@ void static_sparse_CSR_Matrix< VAL, IDX, MP>::put_(const iSet& ir, const iSet& i
 // Se symut==true, tratta sia K che la matrice sparsa come simmetriche triangolari superiori
 // e aggiunge solo le componenti del triangolo superiore di K nel triangolo superiore. 
 // Assume che K punti alle componenti di una matrice nr x nc orientata alle righe.  
-// Tutte le  componenti devono già esistere.
+// Tutte le  componenti devono giï¿½ esistere.
 
 template<typename	VAL, typename	IDX, typename MP >
 template<typename MAT>

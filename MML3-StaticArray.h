@@ -10,26 +10,27 @@ namespace MML3
 {
 
 
+template<typename T, size_t N1, size_t N2>
+class StaticArray;
 
 
+template<typename T, size_t N1>
+using StaticVector=StaticArray<T,N1,1>;
 
 template <typename T, size_t M, size_t N>
 struct array_data_
 {
 	enum{ Base_ = BASE::OFFSET };
 	T p_[M][N];
-	T*			begin(){ return p_[0];}
+	T*		begin(){ return p_[0];}
 	const T*	begin()const{ return p_[0]; }
-
-	T*			end(){ return p_[M] + N; }
+	T*		end(){ return p_[M] + N; }
 	const T*	end()const{ return p_[M] + N; }
-
-	T*			operator[](size_t i){ return p_[i]; }
+	T*		operator[](size_t i){ return p_[i]; }
 	const T*	operator[](size_t i)const{ return p_[i]; }
-	T&			operator()(size_t i, size_t j){ return p_[i - Base_][j - Base_]; }
+	T&		operator()(size_t i, size_t j){ return p_[i - Base_][j - Base_]; }
 	const T&	operator()(size_t i, size_t j)const { return p_[i - Base_][j - Base_]; }
-
-	T&			at_0b(size_t i, size_t j){ return p_[i][j]; }
+	T&		at_0b(size_t i, size_t j){ return p_[i][j]; }
 	const T&	at_0b(size_t i, size_t j)const { return p_[i][j];}
 };
 
@@ -39,19 +40,20 @@ struct array_data_<T,M,1>
 {
 	enum{ Base_ = BASE::OFFSET };
 	T p_[M];
-	T*			begin(){ return p_; }
+	T*		begin(){ return p_; }
 	const T*	begin()const{ return p_; }
-	T*			end(){ return p_ + M; }
+	T*		end(){ return p_ + M; }
 	const T*	end()const{ return p_ + M; }
-	T&			operator[](size_t i){ return p_[i]; }
+	T&		operator[](size_t i){ return p_[i]; }
 	const T&	operator[](size_t i)const{ return p_[i]; }
-	T&			operator()(size_t i){ return p_[i - Base_]; }
+	T&		operator()(size_t i){ return p_[i - Base_]; }
 	const T&	operator()(size_t i)const{ return p_[i-Base_]; }
-	// second index ignored
-	T&			operator()(size_t i, size_t j){ return p_[i - Base_]; }
+	
+        // second index ignored; provided for functions that access vectors as 
+        // 1 column arrays
+	T&		operator()(size_t i, size_t j){ return p_[i - Base_]; }
 	const T&	operator()(size_t i, size_t j)const{ return p_[i - Base_]; }
-
-	T&			at_0b(size_t i, size_t){ return p_[i];}
+	T&		at_0b(size_t i, size_t){ return p_[i];}
 	const T&	at_0b(size_t i, size_t)const { return p_[i];}
 };
 
@@ -59,109 +61,89 @@ struct array_data_<T,M,1>
 //---------------------------------------------------
 // static array class
 //---------------------------------------------------
-template<class T, size_t N1, size_t N2>
-class st_array:public array_data_<T,N1,N2>
+template<typename T, size_t N1, size_t N2>
+class StaticArray:public array_data_<T,N1,N2>
 {
 	typedef array_data_<T, N1, N2> base_class;
 	typedef typename std::conditional<(N2>1), size_t, void > ::type idx2_t;
-
 public:
 
-
-
-	st_array() = default;
-	st_array(const st_array&) = default;
-	st_array(T value){ std::fill_n(begin(), size(), value); }
-	st_array(const std::initializer_list<T>& s){ assign(s.begin(),s.size()); }
-	st_array(const std::initializer_list<std::initializer_list<T>>& s){ assign(s); }
-	st_array(const T* src, size_t src_sz){ assign(src, src_sz); }
-	~st_array() = default;
-
-
+	StaticArray() = default;
+	StaticArray(const StaticArray&) = default;
+	StaticArray(T value){ std::fill_n(begin(), size(), value); }
+	StaticArray(const std::initializer_list<T>& s){ assign(s.begin(),s.size()); }
+	StaticArray(const std::initializer_list<std::initializer_list<T>>& s){ assign(s); }
+	StaticArray(const T* src, size_t src_sz){ assign(src, src_sz); }
+	~StaticArray() = default;
 
 	using base_class::begin;
-
 	using base_class::end;
-
 	using base_class::operator[];
-
 	using base_class::operator();
-
-
 	using base_class::at_0b;
 
+	StaticArray&	operator=(const StaticArray&) = default;
+	StaticArray&	operator=(const std::initializer_list<T>& s){ return assign(s.begin(), s.size()); }
+	StaticArray&	operator=(const std::initializer_list<std::initializer_list<T>>& s){ return assign(s); }
+	StaticArray&	operator=(T value){ return fill(value);}
 
-
-	st_array&	operator=(const st_array&) = default;
-	st_array&	operator=(const std::initializer_list<T>& s){ return assign(s.begin(), s.size()); }
-	st_array&	operator=(const std::initializer_list<std::initializer_list<T>>& s){ return assign(s); }
-	st_array&	operator=(T value){ return fill(value);}
-
-	st_array&	assign(const T* src, size_t src_sz);
-	st_array&	assign(const std::initializer_list<std::initializer_list<T>>& s);
-	st_array&	fill(T value){ std::fill_n(begin(), size(), value); return *this; }
+	StaticArray&	assign(const T* src, size_t src_sz);
+	StaticArray&	assign(const std::initializer_list<std::initializer_list<T>>& s);
+	StaticArray&	fill(T value){ std::fill_n(begin(), size(), value); return *this; }
 
 	size_t		size()const{ return N1*N2;}
-	size_t      nrows()const{ return N1; }
-	size_t      ncols()const{ return N2; }
+	size_t          nrows()const{ return N1; }
+	size_t          ncols()const{ return N2; }
 
-
-	st_array&	operator+=(const st_array&);
-	st_array&	operator-=(const st_array&);
-	st_array&	operator*=(T);
-	st_array&	operator/=(T);
-	st_array&	operator+()									{ return *this; }
-	st_array	operator-()const;
+	StaticArray&	operator+=(const StaticArray&);
+	StaticArray&	operator-=(const StaticArray&);
+	StaticArray&	operator*=(T);
+	StaticArray&	operator/=(T);
+	StaticArray&	operator+()									{ return *this; }
+	StaticArray	operator-()const;
 
 	bool		print(std::ostream& os)const;
 
-	st_array&	set_identity()
-	{
-		assert(N1 == N2);
-		*this = T(0);
-		for (size_t i = 0; i != N1; ++i)
-			at_0b(i, i) = T(1);
-		return *this;
-	}
+	StaticArray&	set_identity();
 
 };
 
 // non member operators
 
-template<class T, size_t N1, size_t N2>
-std::ostream& operator << (std::ostream& o, const st_array<T, N1, N2>& v)
+template<typename T, size_t N1, size_t N2>
+std::ostream& operator << (std::ostream& o, const StaticArray<T, N1, N2>& v)
 {
 	v.print(o);
 	return o;
 }
 
-template<class T, size_t N1, size_t N2>
-inline st_array<T, N1, N2>   operator+(st_array<T, N1, N2> x, const st_array<T, N1, N2>& y)
+template<typename T, size_t N1, size_t N2>
+inline StaticArray<T, N1, N2>   operator+(StaticArray<T, N1, N2> x, const StaticArray<T, N1, N2>& y)
 {
 	return x += y;
 }
 
-template<class T, size_t N1, size_t N2>
-inline st_array<T, N1, N2>   operator-(st_array<T, N1, N2> x, const st_array<T, N1, N2>& y)
+template<typename T, size_t N1, size_t N2>
+inline StaticArray<T, N1, N2>   operator-(StaticArray<T, N1, N2> x, const StaticArray<T, N1, N2>& y)
 {
 	return x -= y;
 }
 
-template<class T, size_t N1, size_t N2>
-inline st_array<T, N1, N2>   operator*(st_array<T, N1, N2> x, T val)
+template<typename T, size_t N1, size_t N2>
+inline StaticArray<T, N1, N2>   operator*(StaticArray<T, N1, N2> x, T val)
 {
 	return x *= val;
 }
 
-template<class T, size_t N1, size_t N2>
-inline st_array<T, N1, N2>   operator*(T val, st_array<T, N1, N2> x)
+template<typename T, size_t N1, size_t N2>
+inline StaticArray<T, N1, N2>   operator*(T val, StaticArray<T, N1, N2> x)
 {
 	return x *= val;
 }
 
 
-template<class T, size_t N1, size_t N2>
-inline st_array<T, N1, N2>   operator/(const st_array<T, N1, N2> x, T val)
+template<typename T, size_t N1, size_t N2>
+inline StaticArray<T, N1, N2>   operator/(const StaticArray<T, N1, N2> x, T val)
 {
 	return x /= val;
 }
@@ -171,16 +153,16 @@ inline st_array<T, N1, N2>   operator/(const st_array<T, N1, N2> x, T val)
 // array product
 
 //template<typename T, size_t M1, size_t M2, size_t N1, size_t N2>
-//st_array<T, 1, 1> product(const st_array<T, M1, M2>, const st_array<T, N1, N2>& B)
+//StaticArray<T, 1, 1> product(const StaticArray<T, M1, M2>, const StaticArray<T, N1, N2>& B)
 //{
 //	static_assert(false, "Not allowed: array size mismatch ");
 //}
 
 
 template<typename T, size_t M, size_t N, size_t K>
-st_array<T, M, N> product(const st_array<T, M, K>& A, const st_array<T, K, N>& B)
+StaticArray<T, M, N> product(const StaticArray<T, M, K>& A, const StaticArray<T, K, N>& B)
 {
-	st_array<T, M, N> C;
+	StaticArray<T, M, N> C;
 	for (size_t m = 0; m != M; ++m)
 	for (size_t n = 0; n != N; ++n)
 	{
@@ -194,9 +176,9 @@ st_array<T, M, N> product(const st_array<T, M, K>& A, const st_array<T, K, N>& B
 
 // specialization for array - vector product
 template<typename T, size_t M, size_t N>
-st_array<T,M,1> product(const st_array<T, M, N>& A, const st_array<T,N,1>& B)
+StaticArray<T,M,1> product(const StaticArray<T, M, N>& A, const StaticArray<T,N,1>& B)
 {
-	st_array<T, M,1> C;
+	StaticArray<T, M,1> C;
 	for (size_t m = 0; m != M; ++m)
 	{
 		T acc(0);
@@ -209,9 +191,9 @@ st_array<T,M,1> product(const st_array<T, M, N>& A, const st_array<T,N,1>& B)
 
 
 template<typename T, size_t M, size_t N>
-st_array<T, N, M> transpose(const st_array<T, M, N>& A)
+StaticArray<T, N, M> transpose(const StaticArray<T, M, N>& A)
 {
-	st_array<T, N, M> tmp;
+	StaticArray<T, N, M> tmp;
 	for (size_t i = 0; i != N; ++i)
 	for (size_t j = 0; j != M; ++j)
 		tmp.at_0b(j,i) = A.at_0b(i,j);
@@ -221,7 +203,7 @@ st_array<T, N, M> transpose(const st_array<T, M, N>& A)
 
 // array product
 template<typename T, size_t M, size_t N>
-T dot(const st_array<T, M, N>& A, const st_array<T, M, N >& B)
+T dot(const StaticArray<T, M, N>& A, const StaticArray<T, M, N >& B)
 {
 
 	T acc(0);
@@ -240,10 +222,19 @@ T dot(const st_array<T, M, N>& A, const st_array<T, M, N >& B)
 // IMPLEMENTATION OF 2 DIMENSIONAL fs ARRAY
 //////////////////////////////////////////////
 
+    template<typename T, size_t N1, size_t N2>
+    inline auto StaticArray<T, N1, N2>::set_identity()->StaticArray& 
+    {
+        assert(N1 == N2);
+        *this = T(0);
+        for (size_t i = 0; i != N1; ++i)
+            at_0b(i, i) = T(1);
+        return *this;
+    }
 
 
-template<class T, size_t N1, size_t N2>
-inline auto st_array<T, N1, N2>::assign(const std::initializer_list<std::initializer_list<T>>& s)->st_array&
+template<typename T, size_t N1, size_t N2>
+inline auto StaticArray<T, N1, N2>::assign(const std::initializer_list<std::initializer_list<T>>& s)->StaticArray&
 {
 	size_t nr = std::min(N1, s.size());
 
@@ -262,16 +253,16 @@ inline auto st_array<T, N1, N2>::assign(const std::initializer_list<std::initial
 
 
 
-template<class T, size_t N1, size_t N2>
-inline auto st_array<T, N1,N2>::assign(const T* src, size_t src_sz)->st_array&
+template<typename T, size_t N1, size_t N2>
+inline auto StaticArray<T, N1,N2>::assign(const T* src, size_t src_sz)->StaticArray&
 {
 	std::copy(src, src + std::max(size(), src_sz), begin());
 	return *this;
 }
 
 
-template<class T, size_t N1, size_t N2>
-bool st_array<T, N1,N2>::print(std::ostream& os)const
+template<typename T, size_t N1, size_t N2>
+bool StaticArray<T, N1,N2>::print(std::ostream& os)const
 {
 	std::streamsize ssize = os.width();
 	std::streamsize sprecision = os.precision();
@@ -291,8 +282,8 @@ bool st_array<T, N1,N2>::print(std::ostream& os)const
 
 
 
-template<class T, size_t N1, size_t N2>
-inline auto st_array<T, N1, N2>::operator+=(const st_array& o)->st_array&
+template<typename T, size_t N1, size_t N2>
+inline auto StaticArray<T, N1, N2>::operator+=(const StaticArray& o)->StaticArray&
 {
 	T* dest			= begin();
 	const T* src	= o.begin();
@@ -301,8 +292,8 @@ inline auto st_array<T, N1, N2>::operator+=(const st_array& o)->st_array&
 	return *this;
 }
 
-template<class T, size_t N1, size_t N2>
-inline auto st_array<T, N1, N2>::operator-=(const st_array& o)->st_array&
+template<typename T, size_t N1, size_t N2>
+inline auto StaticArray<T, N1, N2>::operator-=(const StaticArray& o)->StaticArray&
 {
 	T* dest = begin();
 	const T* src = o.begin();
@@ -312,7 +303,7 @@ inline auto st_array<T, N1, N2>::operator-=(const st_array& o)->st_array&
 }
 
 template<typename T, size_t N1, size_t N2>
-inline auto st_array<T, N1, N2>::operator*=(T val)->st_array&
+inline auto StaticArray<T, N1, N2>::operator*=(T val)->StaticArray&
 {
 	T* dest = begin();
 
@@ -322,7 +313,7 @@ inline auto st_array<T, N1, N2>::operator*=(T val)->st_array&
 }
 
 template<typename  T, size_t N1, size_t N2>
-inline auto st_array<T, N1, N2>::operator/=(T val)->st_array&
+inline auto StaticArray<T, N1, N2>::operator/=(T val)->StaticArray&
 {
 	T* dest = begin();
 
@@ -331,10 +322,10 @@ inline auto st_array<T, N1, N2>::operator/=(T val)->st_array&
 	return *this;
 }
 
-template<class T, size_t N1, size_t N2>
-inline auto st_array<T, N1, N2>::operator-()const->st_array
+template<typename T, size_t N1, size_t N2>
+inline auto StaticArray<T, N1, N2>::operator-()const->StaticArray
 {
-	st_array tmp;
+	StaticArray tmp;
 	T*			dest	= tmp.begin();
 	const T*	src		= begin();
 	for (size_t i = 0; i != N1*N2; ++i)
