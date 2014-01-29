@@ -351,16 +351,14 @@ int main()
 		}
 
 
-
 		{
 
 			std::cout << "******    component access  OP " << std::endl;
 			size_t NR = 100;
 
-			const size_t csz = 200;
+			const size_t csz = 500;
 			size_t csz1 = csz + 1;
-
-			double    cm[csz][csz];
+			
 			Matrix    xcm(csz, csz);
 			double    cm1d[csz*csz];
 
@@ -370,7 +368,6 @@ int main()
 			{
 				for (size_t i = 1; i != csz1; ++i)
 				{
-
 					double * wi = &cm1d[(i - 1)*csz];
 					for (size_t j = 1; j != csz1; ++j)
 						wi[  j - 1] = j + i;
@@ -386,7 +383,6 @@ int main()
 			{
 				for (size_t i = 1; i != csz1; ++i)
 				{
-
 					for (size_t j = 1; j != csz1; ++j)
 						xcm(i, j) = j + i;
 					acc_i += xcm(i, i);
@@ -395,7 +391,6 @@ int main()
 
 			double elt1 = timer.now() - elt0;
 			//std::cout << " MML access () time: " << elt1 << std::endl;
-
 			for (size_t rep = 1; rep <= NR; ++rep)
 			{
 				for (size_t i = 0; i != csz; ++i)
@@ -403,12 +398,10 @@ int main()
 					double * xi = xcm[i];
 					for (size_t j = 0; j != csz; ++j)
 						xi[j] = j + i;
-
 					acc_i += xcm[i][i];
 				}
 			}
 			double elt2 = timer.now() - elt1 - elt0;
-
 			// testing ranges access
 			for (auto i : xcm.row_range())
 			for (auto j : xcm.col_range(i))
