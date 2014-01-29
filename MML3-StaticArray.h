@@ -2,6 +2,8 @@
 #define _MML3_STATIC_ARRAY_H_
 
 #include"MML3-config.h"
+#include "MML3-Math.h"
+#include"MML3-Math.h"
 #include<array>
 //#include<vector>
 #include <cmath>
@@ -70,7 +72,7 @@ public:
 
 	StaticArray() = default;
 	StaticArray(const StaticArray&) = default;
-	StaticArray(T value){ std::fill_n(begin(), size(), value); }
+	explicit StaticArray(T value){ std::fill_n(begin(), size(), value); }
 	StaticArray(const std::initializer_list<T>& s){ assign(s.begin(),s.size()); }
 	StaticArray(const std::initializer_list<std::initializer_list<T>>& s){ assign(s); }
 	StaticArray(const T* src, size_t src_sz){ assign(src, src_sz); }
@@ -152,13 +154,6 @@ inline StaticArray<T, N1, N2>   operator/(const StaticArray<T, N1, N2> x, T val)
 
 // array product
 
-//template<typename T, size_t M1, size_t M2, size_t N1, size_t N2>
-//StaticArray<T, 1, 1> product(const StaticArray<T, M1, M2>, const StaticArray<T, N1, N2>& B)
-//{
-//	static_assert(false, "Not allowed: array size mismatch ");
-//}
-
-
 template<typename T, size_t M, size_t N, size_t K>
 StaticArray<T, M, N> product(const StaticArray<T, M, K>& A, const StaticArray<T, K, N>& B)
 {
@@ -201,7 +196,7 @@ StaticArray<T, N, M> transpose(const StaticArray<T, M, N>& A)
 }
 
 
-// array product
+// array dot product
 template<typename T, size_t M, size_t N>
 T dot(const StaticArray<T, M, N>& A, const StaticArray<T, M, N >& B)
 {
@@ -213,6 +208,37 @@ T dot(const StaticArray<T, M, N>& A, const StaticArray<T, M, N >& B)
 		acc += a[m] * b[m];
 	return sqrt(acc);
 }
+
+// cross product in 3D space
+template<typename T>
+StaticArray<T, 3, 1> cross_product(const StaticArray<T, 3, 1>& A, const StaticArray<T, 3, 1 >& B)
+{
+    StaticArray<T, 3, 1> tmp;
+    Math::vector_product_3D(A.begin(), B.begin(), tmp.begin());
+    return tmp;
+
+}
+
+
+
+
+// returns the determinant of a 2x2, 3x3, 4x4 array
+template<typename T, size_t N>
+T  det(const StaticArray<T, N, N>& A)
+{
+    return Math::Matrix<N,T>::det(A.begin());
+}
+
+// invert a  2x2, 3x3, 4x4 array and returns the matrix determinanat
+
+template<typename T, size_t N>
+T  inv(StaticArray<T, N, N>& A)
+{
+   return Math::Matrix<3,T>::inv(A.begin());
+}
+
+
+
 
 
 

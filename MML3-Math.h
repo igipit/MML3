@@ -57,8 +57,14 @@ namespace  Math
 		{
 			return sqrt(scalar_product(a,a,sz));
 		}
-		// prodotto vettore
-		inline void vector_product_3D(const double a[], const double b[], double c[])
+                
+                
+               
+                
+                
+		// prodotto vettore 3D
+                template<typename T>
+		inline void vector_product_3D(const T a[], const T b[], T c[])
 		{
 			c[0] = a[1] * b[2] - a[2] * b[1];
 			c[1] = a[2] * b[0] - a[0] * b[2];
@@ -79,8 +85,8 @@ namespace  Math
         e le radici sono
         x1 + j retval,    x2 - j retval
         dove retval indica il valore di ritorno della funzione.
-		L'utente può discriminare tra i due casi in base al valore di ritorno della funzione,
-		se questop è 0.0 allora le radici sono reali
+		L'utente puï¿½ discriminare tra i due casi in base al valore di ritorno della funzione,
+		se questop ï¿½ 0.0 allora le radici sono reali
         */
 		inline double poly2_root(double a, double b, double c, double& x1, double& x2)
 		{
@@ -104,7 +110,7 @@ namespace  Math
 		x^3  + a_2 x^2 + a_1 x + a_0 = 0
 
 		Siccome una cubica o ha 3 radici reali oppure ne ha 1 reale e 2
-		complesse coniugate, la soluzione è sempre esprimibile con 4 
+		complesse coniugate, la soluzione ï¿½ sempre esprimibile con 4 
 		numeri reali z_1, z_2, z_3, Im:
 		z_1
 		z_2 + j Im
@@ -244,8 +250,8 @@ namespace  Math
 			{
 
 				return	A[4] * ( A[0]*A[8] - A[2]*A[6] )+
-						A[1] * ( A[5]*A[6] - A[3]*A[8] )+
-						A[7] * ( A[2]*A[3] - A[0]*A[5] );
+					A[1] * ( A[5]*A[6] - A[3]*A[8] )+
+					A[7] * ( A[2]*A[3] - A[0]*A[5] );
 			}
 
 
@@ -332,9 +338,9 @@ namespace  Math
 				
 
 				return 	A14*(A23*A32*A41-A22*A33*A41-A23*A31*A42+A21*A33*A42+A22*A31*A43-A21*A32*A43)+
-						A13*(-A24*A32*A41+A22*A34*A41+A24*A31*A42-A21*A34*A42-A22*A31*A44+A21*A32*A44)+
-						A12*(A24*A33*A41-A23*A34*A41-A24*A31*A43+A21*A34*A43+A23*A31*A44-A21*A33*A44)+
-						A11*(-A24*A33*A42+A23*A34*A42+A24*A32*A43-A22*A34*A43-A23*A32*A44+A22*A33*A44);
+					A13*(-A24*A32*A41+A22*A34*A41+A24*A31*A42-A21*A34*A42-A22*A31*A44+A21*A32*A44)+
+					A12*(A24*A33*A41-A23*A34*A41-A24*A31*A43+A21*A34*A43+A23*A31*A44-A21*A33*A44)+
+					A11*(-A24*A33*A42+A23*A34*A42+A24*A32*A43-A22*A34*A43-A23*A32*A44+A22*A33*A44);
 
 
 			};

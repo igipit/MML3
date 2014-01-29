@@ -38,7 +38,7 @@ int main()
 	std::cout << "\n\nfs_array testing" << std::endl;
 	{
 
-	MML3::StaticVector<double, 3,1> a;
+	MML3::StaticVector<double, 3> a;
 	a[0] = 0;
 	a[1] = 1;
 	a[2] = 2;
@@ -51,7 +51,7 @@ int main()
 
 	a.print(std::cout);
 	//std::array<double, 3> cc{ { 2.1, 3.3, 4.3 } };
-	MML3::StaticVector<double, 3,1> c({ 2.1, 3.3, 4.3 });
+	MML3::StaticVector<double, 3> c({ 2.1, 3.3, 4.3 });
 	std::cout << "c: " << c << std::endl;
 
 	c += a;
@@ -104,15 +104,18 @@ int main()
 		std::cout << "a: " << a << std::endl;
 
 		M3_t A(0.0);
-		A(1, 1) = A(2, 2) = A(3, 3) = 1;
+		A(1, 1) = 1.0;
+        A(2, 2) =2.0;
+        A(3, 3) = 3.0;
 		std::cout << "A: " << A << std::endl;
-
-
-
-
-
-
-
+        
+        std::cout << "det(A): " << MML3::det(A) << std::endl;
+        
+        double de=MML3::inv(A);
+        std::cout << "inv(A): " << std::setprecision(9) << A << std::endl;
+        
+        
+        
 
 	}
 
