@@ -5,6 +5,7 @@
 #include<vector>
 #include<limits>
 #include"MML3-Matrix.h"
+#include"MML3-sparseMatrix.h"
 
 
 namespace MML3
@@ -12,8 +13,8 @@ namespace MML3
 
 
 	template<  typename	VALUE_TYPE,	/* il tipo delle componenti della matrice    */
-                   typename     IDX_TYPE= int_t,    /* il tipo intero degli indici della matrice */
-                   class        MP	= M_PROP::GE>
+               typename IDX_TYPE= int_t,    /* il tipo intero degli indici della matrice */
+               class    MP=M_PROP::GE>
 	class static_sparse_CSR_Matrix;
 
 	template<typename T>
@@ -30,6 +31,9 @@ Static refers to the sparsity structure:  once the sparsity structure is formed 
 template<typename VALUE_TYPE,typename IDX_TYPE,class MP>
 class static_sparse_CSR_Matrix : public sparseMatrix<VALUE_TYPE,IDX_TYPE>
 {
+public:
+	typedef VALUE_TYPE									value_t;
+	typedef IDX_TYPE									index_t;
 	// Since row_position_array contains the offset position of the beginning element of each row, it should be
 	// of type size_t to conform to the machine architecture (32 bit and 64 bit have consistent differences in addressable memory space)
 	// But, since sparse solvers (pardiso) expect the same type for column indexes and row positions  here i forced this constraint
@@ -38,10 +42,8 @@ class static_sparse_CSR_Matrix : public sparseMatrix<VALUE_TYPE,IDX_TYPE>
 
 	typedef std::valarray<index_t>						column_idx_array_t;
 	typedef std::valarray<value_t>						column_val_array_t;
-public:
 
-	typedef VALUE_TYPE									value_t;
-	typedef IDX_TYPE									index_t;
+	
 	//typedef std::vector<index_t>						idx_array_t;
 	//typedef std::vector<value_t>						val_array_t;
 	
@@ -116,11 +118,11 @@ public:
 	/// per accedere dall'esterno direttamante ai 3 vettori
 	///------------------------------------------------------
 	/// ritorna il puntatore agli indici di colonna
-	index_t*	column_index(){return &(col_idx_.front());}
+	index_t*	column_index(){return &(col_idx_[0]);}
 	/// ritorna il puntatore all'vettore di puntatori alle righe 
-	index_t*	row_pos(){return & row_pos_.front();}
+	index_t*	row_pos(){return & row_pos_[0];}
 	/// ritorna il puntatore ai valori diversi da zero
-	value_t*	column_value(){return & col_val_.front();}
+	value_t*	column_value(){return & col_val_[0];}
 
 
 

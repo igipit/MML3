@@ -42,6 +42,10 @@ namespace MML3{
 		iSet& 				add(index_t i)					{ data_.push_back(i); return *this; }
 		index_t&  			operator()(index_t i)			{ return data_[i-BASE::OFFSET]; }
 		const index_t&   	operator()(index_t i)const		{ return data_[i-BASE::OFFSET]; }
+		index_t&  			operator[](index_t i)			{ return data_[i]; }
+		const index_t&   	operator[](index_t i)const		{ return data_[i]; }
+
+
 		size_t   			size()const						{ return data_.size(); }
 		iSet&     			reserve(index_t cap)			{ data_.reserve(cap); return *this; }
 		iSet&     			resize(index_t sz)				{ data_.resize(sz); return *this; }

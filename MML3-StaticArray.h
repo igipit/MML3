@@ -23,16 +23,18 @@ template <typename T, size_t M, size_t N>
 struct array_data_
 {
 	enum{ Base_ = BASE::OFFSET };
+
+	typedef T	value_t;
 	T p_[M][N];
-	T*		begin(){ return p_[0];}
+	T*			begin(){ return p_[0];}
 	const T*	begin()const{ return p_[0]; }
-	T*		end(){ return p_[M] + N; }
+	T*			end(){ return p_[M] + N; }
 	const T*	end()const{ return p_[M] + N; }
-	T*		operator[](size_t i){ return p_[i]; }
+	T*			operator[](size_t i){ return p_[i]; }
 	const T*	operator[](size_t i)const{ return p_[i]; }
-	T&		operator()(size_t i, size_t j){ return p_[i - Base_][j - Base_]; }
+	T&			operator()(size_t i, size_t j){ return p_[i - Base_][j - Base_]; }
 	const T&	operator()(size_t i, size_t j)const { return p_[i - Base_][j - Base_]; }
-	T&		at_0b(size_t i, size_t j){ return p_[i][j]; }
+	T&			at_0b(size_t i, size_t j){ return p_[i][j]; }
 	const T&	at_0b(size_t i, size_t j)const { return p_[i][j];}
 };
 
@@ -40,22 +42,23 @@ struct array_data_
 template <typename T, size_t M>
 struct array_data_<T,M,1>
 {
+	typedef T	value_t;
 	enum{ Base_ = BASE::OFFSET };
 	T p_[M];
-	T*		begin(){ return p_; }
+	T*			begin(){ return p_; }
 	const T*	begin()const{ return p_; }
-	T*		end(){ return p_ + M; }
+	T*			end(){ return p_ + M; }
 	const T*	end()const{ return p_ + M; }
-	T&		operator[](size_t i){ return p_[i]; }
+	T&			operator[](size_t i){ return p_[i]; }
 	const T&	operator[](size_t i)const{ return p_[i]; }
-	T&		operator()(size_t i){ return p_[i - Base_]; }
+	T&			operator()(size_t i){ return p_[i - Base_]; }
 	const T&	operator()(size_t i)const{ return p_[i-Base_]; }
 	
         // second index ignored; provided for functions that access vectors as 
         // 1 column arrays
-	T&		operator()(size_t i, size_t j){ return p_[i - Base_]; }
+	T&			operator()(size_t i, size_t j){ return p_[i - Base_]; }
 	const T&	operator()(size_t i, size_t j)const{ return p_[i - Base_]; }
-	T&		at_0b(size_t i, size_t){ return p_[i];}
+	T&			at_0b(size_t i, size_t){ return p_[i];}
 	const T&	at_0b(size_t i, size_t)const { return p_[i];}
 };
 
@@ -83,6 +86,7 @@ public:
 	using base_class::operator[];
 	using base_class::operator();
 	using base_class::at_0b;
+	using base_class::value_t;
 
 	StaticArray&	operator=(const StaticArray&) = default;
 	StaticArray&	operator=(const std::initializer_list<T>& s){ return assign(s.begin(), s.size()); }
@@ -92,8 +96,10 @@ public:
 	StaticArray&	assign(const T* src, size_t src_sz);
 	StaticArray&	assign(const std::initializer_list<std::initializer_list<T>>& s);
 	StaticArray&	fill(T value){ std::fill_n(begin(), size(), value); return *this; }
+	// provided for coherence with other array classes: throws if new sizes dont equal old sizes
+	StaticArray&	resize(size_t N, size_t M){ if (N != N1 || M != N2) throw std::runtime_error("StaticArray not resizeable"); return *this; }
 
-	size_t		size()const{ return N1*N2;}
+	size_t			size()const{ return N1*N2;}
 	size_t          nrows()const{ return N1; }
 	size_t          ncols()const{ return N2; }
 
@@ -102,9 +108,9 @@ public:
 	StaticArray&	operator*=(T);
 	StaticArray&	operator/=(T);
 	StaticArray&	operator+()									{ return *this; }
-	StaticArray	operator-()const;
+	StaticArray		operator-()const;
 
-	bool		print(std::ostream& os)const;
+	bool			print(std::ostream& os)const;
 
 	StaticArray&	set_identity();
 
@@ -198,7 +204,7 @@ StaticArray<T, N, M> transpose(const StaticArray<T, M, N>& A)
 
 // array dot product
 template<typename T, size_t M, size_t N>
-T dot(const StaticArray<T, M, N>& A, const StaticArray<T, M, N >& B)
+inline T dot(const StaticArray<T, M, N>& A, const StaticArray<T, M, N >& B)
 {
 
 	T acc(0);
@@ -209,9 +215,18 @@ T dot(const StaticArray<T, M, N>& A, const StaticArray<T, M, N >& B)
 	return sqrt(acc);
 }
 
+// array dot product
+template<typename T, size_t M, size_t N>
+inline T norm2(const StaticArray<T, M, N>& A)
+{
+	return sqrt(dot(A, A));
+}
+
+
+
 // cross product in 3D space
 template<typename T>
-StaticArray<T, 3, 1> cross_product(const StaticArray<T, 3, 1>& A, const StaticArray<T, 3, 1 >& B)
+inline StaticArray<T, 3, 1> cross_product(const StaticArray<T, 3, 1>& A, const StaticArray<T, 3, 1 >& B)
 {
     StaticArray<T, 3, 1> tmp;
     Math::vector_product_3D(A.begin(), B.begin(), tmp.begin());
@@ -224,7 +239,7 @@ StaticArray<T, 3, 1> cross_product(const StaticArray<T, 3, 1>& A, const StaticAr
 
 // returns the determinant of a 2x2, 3x3, 4x4 array
 template<typename T, size_t N>
-T  det(const StaticArray<T, N, N>& A)
+inline T  det(const StaticArray<T, N, N>& A)
 {
     return Math::Matrix<N,T>::det(A.begin());
 }
@@ -232,7 +247,7 @@ T  det(const StaticArray<T, N, N>& A)
 // invert a  2x2, 3x3, 4x4 array and returns the matrix determinanat
 
 template<typename T, size_t N>
-T  inv(StaticArray<T, N, N>& A)
+inline T  inv(StaticArray<T, N, N>& A)
 {
    return Math::Matrix<3,T>::inv(A.begin());
 }

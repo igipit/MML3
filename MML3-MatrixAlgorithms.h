@@ -265,10 +265,10 @@ namespace MML3
 		}
 
 		template<typename T, typename MO>
-		Matrix<T, M_PROP::GE, M_SHAPE::RE, MO>& product(const	Matrix<T, M_PROP::GE, M_SHAPE::RE, MO>& A,
-														const	Vector<T>& B,
-																Vector<T>& C,
-														bool trA = false)
+		Vector<T>& product(	const	Matrix<T, M_PROP::GE, M_SHAPE::RE, MO>& A,
+							const	Vector<T>& B,
+									Vector<T>& C,
+									bool trA = false)
 		{
 			bool tmp = false;
 			const Vector<T>* pB = &B;

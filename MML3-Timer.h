@@ -3,7 +3,7 @@
 #include<chrono>
 #include<ctime>
 #include<string>
-
+#pragma warning(disable : 4996)
 namespace MML3
 {
 	class Timer {
@@ -16,7 +16,12 @@ namespace MML3
 		double		now() const{ return seconds(); }
 		double		accuracy()const{	return 	double(std::chrono::high_resolution_clock::period::num)	/ std::chrono::high_resolution_clock::period::den ;	}
 
-		static std::string current_time();
+		static std::string current_time()
+		{
+			std::chrono::system_clock::time_point p = std::chrono::system_clock::now();
+			std::time_t t = std::chrono::system_clock::to_time_t(p);
+			return  std::ctime(&t);
+		}
 		
 	private:
 		std::chrono::high_resolution_clock::time_point _start;
@@ -26,14 +31,10 @@ namespace MML3
 
 
 
-#pragma warning(disable : 4996)
 
-	 inline std::string Timer::current_time()
-	{
-		std::chrono::system_clock::time_point p = std::chrono::system_clock::now();
-		std::time_t t = std::chrono::system_clock::to_time_t(p);
-		return  std::ctime(&t);
-	}
+
+	
+	
 
 
 } // end namespace MML3

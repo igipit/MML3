@@ -7,6 +7,7 @@
 #include"MML3-StaticArray.h"
 #include"MML3-Timer.h"
 #include"MML3-Math.h"
+#include"MML3-DiagonaBlockMatrix.h"
 #include<iostream>
 #include<iomanip>
 
@@ -93,29 +94,44 @@ int main()
 
 	{
 
-		typedef MML3::StaticVector<double,3>    V3_t; // 3-vector
+		typedef MML3::StaticVector<double, 3>    V3_t; // 3-vector
 		typedef MML3::StaticArray<double, 3, 3> M3_t; // 3x3-matrix
 
 		V3_t	x({ 1, 0, 0 }),
 			y({ 0, 1, 0 }),
 			z({ 0, 0, 1 });
 
-		V3_t a = 0.2*(x-y) + 0.5*(y+z) + 0.6*z;
+		V3_t a = 0.2*(x - y) + 0.5*(y + z) + 0.6*z;
 		std::cout << "a: " << a << std::endl;
 
 		M3_t A(0.0);
 		A(1, 1) = 1.0;
-        A(2, 2) =2.0;
-        A(3, 3) = 3.0;
+		A(2, 2) = 2.0;
+		A(3, 3) = 3.0;
 		std::cout << "A: " << A << std::endl;
-        
-        std::cout << "det(A): " << MML3::det(A) << std::endl;
-        
-        double de=MML3::inv(A);
-        std::cout << "inv(A): " << std::setprecision(9) << A << std::endl;
-        
-        
-        
+
+		std::cout << "det(A): " << MML3::det(A) << std::endl;
+
+		double de = MML3::inv(A);
+		std::cout << "inv(A): " << std::setprecision(9) << A << std::endl;
+
+	}
+
+	{
+		typedef MML3::StaticArray<double, 3, 3> M3_t;
+		MML3::DiagonalBlockMatrix<M3_t> D(4);
+
+		M3_t A, B;
+		A = 1.0;
+		B = 2.0;
+		D.reference_block(1, A).reference_block(2, A).reference_block(3, B).reference_block(4, B);
+		std::cout << "rows: " << D.nrows() << " cols: " << D.ncols() << std::endl;
+
+
+		MML3::Matrix<double> mA(12, 12), mC(12,12);
+		mA.fill(1.5);
+		MML3::product_Diag_A(D, mA, mC);
+
 
 	}
 

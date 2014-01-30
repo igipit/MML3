@@ -2,6 +2,7 @@
 #include<memory>
 #include<iostream>
 #include<iomanip>
+#include<cassert>
 #include"MML3-config.h"
 
 namespace MML3

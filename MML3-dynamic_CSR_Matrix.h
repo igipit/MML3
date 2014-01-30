@@ -1,5 +1,11 @@
 #pragma once
+#ifdef min
+#undef min
+#endif
 
+#ifdef max
+#undef max
+#endif
 
 #include<stdexcept> 
 #include<iostream>
@@ -198,8 +204,10 @@ inline T get_max_val(const T* p, size_t sz)
 
 
 template<typename	VAL,typename	IDX, class MP, class		ALLOCATOR>
-dynamic_sparse_CSR_Matrix<VAL, IDX, MP,ALLOCATOR>::dynamic_sparse_CSR_Matrix(index_t R, index_t C, size_t bsz )
-:ncols_(C), row_(R), allocator_( new ALLOCATOR(bsz == 0 ? std::max(R, C) + 1 : bsz))
+dynamic_sparse_CSR_Matrix<VAL, IDX, MP,ALLOCATOR>::dynamic_sparse_CSR_Matrix(index_t R, index_t C, size_t bsz):
+	ncols_(C), 
+	row_(R), 
+	allocator_( new ALLOCATOR(bsz == 0 ? (std::max(R, C) + 1): bsz))
 {
 	for (auto& r:row_)
 		r = new OSL_list(allocator_);
