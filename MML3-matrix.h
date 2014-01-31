@@ -319,8 +319,8 @@ namespace MML3
 		//------------------------------------//
 		//           IO                       //
 		//------------------------------------//
-		int				fwrite(const char* fname);
-		int				fread(const char* fname);
+		int				fwrite(const std::string& fname);
+		int				fread(const std::string& fname);
 		bool			print(std::ostream& os)const;
 
 		//------------------------------------//
@@ -662,7 +662,7 @@ inline auto Matrix<T, MP, MS, MO>::num_elements_(index_type nr, index_type nc)co
 	///@return: -2 se si sono verificati errori in lettura
 	///@return: -3 (solo fread) se i tipi  del'indice o dei valori su file non coincidono con quelli della Matrix
 	template<typename T, typename MP, typename MS, typename MO>
-	int  Matrix<T, MP, MS, MO>::fwrite(const char* fname)
+	int  Matrix<T, MP, MS, MO>::fwrite(const std::string& fname)
 	{
 		std::ofstream f(fname, std::ios_base::binary);
 		if (!f.is_open())
@@ -684,7 +684,7 @@ inline auto Matrix<T, MP, MS, MO>::num_elements_(index_type nr, index_type nc)co
 
 
 	template<typename T, typename MP, typename MS, typename MO>
-	int  Matrix<T, MP, MS, MO>::fread(const char* fname)
+	int  Matrix<T, MP, MS, MO>::fread(const std::string& fname)
 	{
 		std::ifstream f(fname, std::fstream::binary);
 		if (!f.is_open())
