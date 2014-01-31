@@ -143,7 +143,7 @@ namespace MML3
 
 	//C= Diag' * A  
 	template<typename BMAT, typename MAT>
-	void product_DiagT_A(const DiagonalBlockMatrix<BMAT>& D, const MAT& A, MAT& C)
+	MAT&  product_DiagT_A(const DiagonalBlockMatrix<BMAT>& D, const MAT& A, MAT& C)
 	{
 
 		typedef typename BMAT::value_t value_t;
@@ -192,10 +192,10 @@ namespace MML3
 
 	// C = Diag' * A * Diag
 	template<typename BMAT, typename MAT>
-	void product_DiagT_A_Diag(const DiagonalBlockMatrix<BMAT>& D, const MAT& A, MAT& C)
+	MAT& product_DiagT_A_Diag(const DiagonalBlockMatrix<BMAT>& D, const MAT& A, MAT& C)
 	{
 
-		typedef typename BMAT::value_ value_t;
+		typedef typename BMAT::value_t value_t;
 		size_t Dsz = D.ncols();
 		
 		if (Dsz != A.nrows() || Dsz != A.ncols() )
@@ -222,7 +222,7 @@ namespace MML3
 			{
 					for (size_t a = 0; a != bsize; ++a)
 					{
-						for (b = 0; b != bsize; ++b)
+						for (size_t b = 0; b != bsize; ++b)
 						{
 							value_t acc = 0;
 							for (size_t c = 0; c != bsize; ++c)

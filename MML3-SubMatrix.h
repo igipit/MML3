@@ -2,6 +2,7 @@
 
 #include"MML3-config.h"
 #include"MML3-iSet.h"
+#include<stdexcept>
 
 namespace MML3
 {
@@ -38,6 +39,9 @@ public:
 	SubMatrix&	fill( T val);
 	SubMatrix&	operator=(const SubMatrix& rhs) = default;
 	SubMatrix&	operator=(T val) {return fill(val);}
+	
+	template<typename MAT2>
+	SubMatrix&	operator=(const MAT2& rhs);
 
 	bool  print(std::ostream& os)const;
 
@@ -157,6 +161,21 @@ auto SubMatrix<T, MAT>::fill(const T val)->SubMatrix&
 	return *this;
 }
 
+
+
+template<typename T, typename MAT>
+template<typename MAT2>
+auto SubMatrix<T, MAT>::operator=(const MAT2& rhs)->SubMatrix&
+{
+	if (nrows() != rhs.nrows() || ncols() != rhs.ncols())
+		throw std::range_error("");
+
+	size_t nr = nrows(),nc=ncols();
+	for (size_t i = 0; i != nr; ++i)
+	for (size_t j = 0; j != nc; ++j)
+		A_(r_[i], c_[j]) = rhs(i+1, j+1);
+	return *this;
+}
 
 
 } // end namespace
