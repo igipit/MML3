@@ -44,6 +44,9 @@ namespace MML3{
 		const index_t&   	operator()(index_t i)const		{ return data_[i-BASE::OFFSET]; }
 		index_t&  			operator[](index_t i)			{ return data_[i]; }
 		const index_t&   	operator[](index_t i)const		{ return data_[i]; }
+		iSet&				fill(index_t v)					{ std::fill_n(data_.begin(), data_.size(), v); return *this;}
+
+
 
 
 		size_t   			size()const						{ return data_.size(); }

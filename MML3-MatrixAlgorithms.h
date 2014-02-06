@@ -234,7 +234,7 @@ namespace MML3
 		template<typename T, typename MO>
 		Matrix<T, M_PROP::GE, M_SHAPE::RE, MO>& product(const	Matrix<T, M_PROP::GE, M_SHAPE::RE, MO>& A,
 														const	Matrix<T, M_PROP::GE, M_SHAPE::RE, MO>& B,
-																Matrix<T, M_PROP::GE, M_SHAPE::RE, MO>& C,
+																Matrix<T, M_PROP::GE, M_SHAPE::RE, MO>& C=B,
 														bool trA = false, bool trB = false)
 		{
 			bool tmp = false;

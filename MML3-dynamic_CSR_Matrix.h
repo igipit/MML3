@@ -638,6 +638,7 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP, ALLOCATOR>::destroy()
 									type<value_t>::id()
 		};
 
+
 		os.write(reinterpret_cast<const char*>(header_), sizeof(header_));
 		if (!os)
 			return -2;

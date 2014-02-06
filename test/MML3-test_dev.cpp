@@ -8,8 +8,12 @@
 #include"MML3-Timer.h"
 #include"MML3-Math.h"
 #include"MML3-DiagonaBlockMatrix.h"
+#include"PI-lexicast.h"
 #include<iostream>
 #include<iomanip>
+
+
+#include<cstdlib>
 
 
 int main()
@@ -128,9 +132,90 @@ int main()
 		std::cout << "rows: " << D.nrows() << " cols: " << D.ncols() << std::endl;
 
 
-		MML3::Matrix<double> mA(12, 12), mC(12,12);
+		MML3::Matrix<double> mA(12, 12), mC(12, 12);
 		mA.fill(1.5);
 		MML3::product_Diag_A(D, mA, mC);
+
+
+	}
+
+	{
+		size_t NR = 100000;
+		MML3::Timer timer;
+		
+		const char* chstr = "122";
+		std::string valstr(chstr);
+
+		
+
+		int iacc = 0;
+		timer.start();
+		for (size_t i = 0; i != NR; ++i)
+		{
+			iacc += PI::gen2gen_lexicast<int>(valstr);
+		}
+		double t0 = timer.now();
+		for (size_t i = 0; i != NR; ++i)
+		{
+			iacc += PI::lexicast<int>(valstr);
+		}
+		double t1 = timer.now() - t0;
+
+		for (size_t i = 0; i != NR; ++i)
+		{
+			iacc += atoi(valstr.c_str());
+		}
+		double t2 = timer.now() - t1;
+		for (size_t i = 0; i != NR; ++i)
+		{
+			iacc += atoi(chstr);
+		}
+		double t3 = timer.now() - t2;
+
+
+		
+		std::cout << "generic lexicast string 2 int: " << t0 / NR << std::endl
+			<< "special lexicast string 2 int: " << t1 / NR << std::endl
+			<< "atoi    lexicast string 2 int: " << t2 / NR << std::endl
+			<< "atoi    lexicast char*  2 int: " << t3 / NR << std::endl << iacc << std::endl;
+
+		{
+			double dacc = 0;
+			timer.start();
+			for (size_t i = 0; i != NR; ++i)
+			{
+				dacc += PI::gen2gen_lexicast<double>(valstr);
+			}
+			double t0 = timer.now();
+			for (size_t i = 0; i != NR; ++i)
+			{
+				dacc += PI::lexicast<double>(valstr);
+			}
+			double t1 = timer.now() - t0;
+
+			for (size_t i = 0; i != NR; ++i)
+			{
+				dacc += atof(valstr.c_str());
+			}
+			double t2 = timer.now() - t1;
+			for (size_t i = 0; i != NR; ++i)
+			{
+				dacc += atof(chstr);
+			}
+			double t3 = timer.now() - t2;
+
+
+
+			std::cout << "generic lexicast string 2 double: " << t0 / NR << std::endl
+				<< "special lexicast string 2 double: " << t1 / NR << std::endl
+				<< "atof    lexicast string 2 double: " << t2 / NR << std::endl
+				<< "atof    lexicast char*  2 double: " << t3 / NR << std::endl << dacc << std::endl;
+		}
+
+
+		
+
+		
 
 
 	}
