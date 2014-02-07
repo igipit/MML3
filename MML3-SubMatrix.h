@@ -43,6 +43,17 @@ public:
 	template<typename MAT2>
 	SubMatrix&	operator=(const MAT2& rhs);
 
+	template<typename MAT2>
+	SubMatrix&	operator+=(const MAT2& rhs);
+
+	template<typename MAT2>
+	SubMatrix&	operator-=(const MAT2& rhs);
+
+	
+	SubMatrix&	operator*=(const value_t& v);
+
+
+
 	bool  print(std::ostream& os)const;
 
 protected:
@@ -162,13 +173,12 @@ auto SubMatrix<T, MAT>::fill(const T val)->SubMatrix&
 }
 
 
-
 template<typename T, typename MAT>
 template<typename MAT2>
 auto SubMatrix<T, MAT>::operator=(const MAT2& rhs)->SubMatrix&
 {
 	if (nrows() != rhs.nrows() || ncols() != rhs.ncols())
-		throw std::range_error("");
+		throw std::range_error("SubMatrix<T, MAT>::operator= : range error");
 
 	size_t nr = nrows(),nc=ncols();
 	for (size_t i = 0; i != nr; ++i)
@@ -176,6 +186,48 @@ auto SubMatrix<T, MAT>::operator=(const MAT2& rhs)->SubMatrix&
 		A_(r_[i], c_[j]) = rhs(i+1, j+1);
 	return *this;
 }
+
+
+template<typename T, typename MAT>
+template<typename MAT2>
+auto SubMatrix<T, MAT>::operator+=(const MAT2& rhs)->SubMatrix&
+{
+	if (nrows() != rhs.nrows() || ncols() != rhs.ncols())
+		throw std::range_error("SubMatrix<T, MAT>::operator+=: range error");
+
+	size_t nr = nrows(), nc = ncols();
+	for (size_t i = 0; i != nr; ++i)
+	for (size_t j = 0; j != nc; ++j)
+		A_(r_[i], c_[j])+= rhs(i + 1, j + 1);
+	return *this;
+}
+
+template<typename T, typename MAT>
+template<typename MAT2>
+auto SubMatrix<T, MAT>::operator-=(const MAT2& rhs)->SubMatrix&
+{
+	if (nrows() != rhs.nrows() || ncols() != rhs.ncols())
+		throw std::range_error("SubMatrix<T, MAT>::operator-=: range error");
+
+	size_t nr = nrows(), nc = ncols();
+	for (size_t i = 0; i != nr; ++i)
+	for (size_t j = 0; j != nc; ++j)
+		A_(r_[i], c_[j]) -= rhs(i + 1, j + 1);
+	return *this;
+}
+
+template<typename T, typename MAT>
+auto SubMatrix<T, MAT>::operator*=(const value_t& value)->SubMatrix&
+{
+	size_t nr = nrows(), nc = ncols();
+	for (size_t i = 0; i != nr; ++i)
+	for (size_t j = 0; j != nc; ++j)
+		A_(r_[i], c_[j]) *= value;
+	return *this;
+}
+
+
+
 
 
 } // end namespace

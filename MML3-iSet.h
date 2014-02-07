@@ -25,7 +25,7 @@ namespace MML3{
 		iSet() = default;
 		iSet(const	iSet&  rhs) :data_(rhs.data_){};
 		iSet(iSet&& rhs) :data_(std::move(rhs.data_)){};
-		iSet(index_type i) :data_(1, i ){}
+		//iSet(index_type i) :data_(1, i ){}
 		// creates a set of indexes {first, first+1,..., last}
 		iSet(index_t first, index_t last) :data_(last - first + 1){ std::iota(data_.begin(), data_.end(), first); }
 		template<typename T>

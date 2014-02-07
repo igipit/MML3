@@ -118,6 +118,10 @@ namespace MML3
 	if (pardiso_error != 0) 
 	{
 		log << " fattorizzazione numerica fallita, codice pardiso=" << pardiso_error << "\n";
+		if (pardiso_error == -4)
+		{
+			log << "la matrice di sistema e' singolare \n";
+		}
 		return -22;
 	}
 		
@@ -153,7 +157,7 @@ namespace MML3
 				pardiso_iparam.begin(), &pardiso_msglvl, 0, 0, &pardiso_error);
 
 
-	return 01;
+	return 0;
 		
 }
 

@@ -44,6 +44,9 @@ struct Event
 
 		const event_vector& get_events()const{return event_;}
 
+		/** Timer::current_time()
+		* return a std::string with the current time
+		*/
 		static std::string current_time()
 		{
 			std::chrono::system_clock::time_point p = std::chrono::system_clock::now();
