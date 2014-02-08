@@ -22,12 +22,13 @@ namespace MML3
 		Vector(const std::initializer_list<T>& s)			:Vector(s.begin(), s.size()){}
 		~Vector()= default;
 		Vector&		operator=(const Vector& o)				{ return assign(o.p_.get(), o.sz_);}
-		Vector&		operator=(T val)						{ std::fill_n(p_.get(), sz_, val); return *this; }
+		Vector&		operator=(T val)						{ return fill(val); }
 		Vector&		operator=(const std::initializer_list<T>& s) { return assign(s.begin(), s.size()); }
 		Vector&		assign(const T* o, size_t sz)			{ resize(sz); std::copy(o, o + sz, p_.get()); return *this; }
 		void		swap(Vector& o)							{ std::swap(p_,o.p_); std::swap(sz_, o.sz_); }
 		Vector&		resize(size_t sz)						{ if (sz_ != sz){Vector tmp(sz);swap(tmp);}  return *this; }
 		void		free()									{ p_.reset(); sz_ = 0; }
+		Vector&		fill(T val)								{ std::fill_n(p_.get(), sz_, val); return *this; }
 
 		// ACCESSORS
 		T*			begin()									{return p_.get(); }

@@ -159,7 +159,7 @@ namespace MML3
 			if (x.size() != y.size())
 				throw std::range_error(" vector dot : size mismatch");
 
-			return Cblas<T>::dot(x.size(), x.begin(), y.begin());
+			return Cblas<T>::dot(x.size(), x.begin(), 1,  y.begin(), 1);
 		}
 
 		//-------------------------------
