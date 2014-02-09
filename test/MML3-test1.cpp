@@ -47,8 +47,8 @@ int main()
 			d(i) = 2 * i;
 		std::cout << "d: " << d;
 
-		double* p = d.begin();
-		double* e = d.end();
+		double* p = d.data();
+		double* e = p+d.size();
 		while (p != e)
 			std::cout << *p++ << " ";
 

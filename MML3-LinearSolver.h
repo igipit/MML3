@@ -134,7 +134,7 @@ namespace MML3{
 		{
 			pA_ = &A;
 			pivot_.resize(A.nrows());
-			state_=LAPACK<value_t>::getrf(A.CblasOrder(), A.nrows(), A.ncols(), A.begin(), A.leading_dim(), &pivot_[0]);
+			state_=LAPACK<value_t>::getrf(A.CblasOrder(), A.nrows(), A.ncols(), A.data(), A.leading_dim(), &pivot_[0]);
 			return good();
 		}
 
@@ -153,7 +153,7 @@ namespace MML3{
 				char tr('N');
 				if (trA)
 					tr = 'S';
-				state_ = LAPACK<value_t>::getrs(pA_->CblasOrder(), tr, pA_->nrows(), X.ncols(), pA_->begin(), pA_->leading_dim(), &pivot_[0], X.begin(), X.leading_dim());
+				state_ = LAPACK<value_t>::getrs(pA_->CblasOrder(), tr, pA_->nrows(), X.ncols(), pA_->data(), pA_->leading_dim(), &pivot_[0], X.data(), X.leading_dim());
 			}
 			return good();
 		}
@@ -171,7 +171,7 @@ namespace MML3{
 				// if is a rectangular symmetric the input paramater L is ignored
 				if (std::is_same<MP,M_PROP::SYM>::value)
 					uplo_ = (A.CblasSymUpLo() == Option::UpLo::Lower) ? 'L' : 'U';
-				state_ = LAPACK<value_t >::potrf(A.CblasOrder(), uplo_, A.nrows(), A.begin(), A.leading_dim());
+				state_ = LAPACK<value_t >::potrf(A.CblasOrder(), uplo_, A.nrows(), A.data(), A.leading_dim());
 			}
 			// while for packed matrices it seems that intel mkl pptrf does not handle properly row major formats, so ...
 			else
@@ -213,18 +213,18 @@ namespace MML3{
 			else
 			{
 				if (std::is_same<MS,M_SHAPE::RE>::value)
-					state_ = LAPACK<value_t>::potrs(pA_->CblasOrder(), uplo_, pA_->nrows(), X.ncols(), pA_->begin(), pA_->leading_dim(), X.begin(), X.leading_dim());
+					state_ = LAPACK<value_t>::potrs(pA_->CblasOrder(), uplo_, pA_->nrows(), X.ncols(), pA_->data(), pA_->leading_dim(), X.begin(), X.leading_dim());
 				else
 				{
 					if (std::is_same<MO,M_ORD::COL>::value)
-						state_ = LAPACK<value_t>::pptrs(pA_->CblasOrder(), uplo_, pA_->nrows(), X.ncols(), pA_->begin(), X.begin(), X.leading_dim());
+						state_ = LAPACK<value_t>::pptrs(pA_->CblasOrder(), uplo_, pA_->nrows(), X.ncols(), pA_->data(), X.begin(), X.leading_dim());
 					else
 					{
 						char tmp_uplo = std::is_same<M_SHAPE::LT,MS>::value?'U':'L';
 
 						// i make a transposed copy of the rhs
 						auto B = transpose(X);
-						state_ = LAPACK<value_t>::pptrs(Option::ColMajor, tmp_uplo, pA_->nrows(), X.ncols(), pA_->begin(), B.begin(), B.ncols());
+						state_ = LAPACK<value_t>::pptrs(Option::ColMajor, tmp_uplo, pA_->nrows(), X.ncols(), pA_->data(), B.begin(), B.ncols());
 						X = transpose(B);
 					}
 				}
@@ -261,7 +261,7 @@ namespace MML3{
 				// pare che pptrs non voglia saperne di funzionare in modalità ROW_MAJOR, pertanto eseguo la trasposta del termine noto
 				X.set_transpose();
 				T* px = X.begin();
-				int info = LAPACK<T>::pptrs(MML3_LAPACK_COL_MAJOR, 'U', pA_->nrows(), X.nrows(), pA_->begin(), px, X.leading_dimension());
+				int info = LAPACK<T>::pptrs(MML3_LAPACK_COL_MAJOR, 'U', pA_->nrows(), X.nrows(), pA_->data(), px, X.leading_dimension());
 				X.set_transpose();
 				return info;
 			}

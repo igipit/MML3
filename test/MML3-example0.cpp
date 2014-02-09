@@ -105,7 +105,7 @@ int main()
 		std::cout << "K:" << std::scientific << std::setw(10) << std::setprecision(12) << K;
 
 		// a SubMatrix formed by row 3 of K
-		K.row(3).fill(3.0);
+		K.row({ 3 }).fill(3.0);
 		std::cout << "K:" << std::scientific << std::setw(20) << std::setprecision(12) << K;
 
 		// a SubMatrix formed by rows 2,3 and columns 4,5,6 of K

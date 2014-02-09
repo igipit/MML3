@@ -11,6 +11,7 @@
 #include<stdexcept>
 #include<cassert>
 #include"MML3-memory_array_.h"
+#include"MML3-Vector.h"
 #include"MML3-config.h"
 #include"MML3-iSet.h"
 #include"MML3-SubMatrix.h"
@@ -164,7 +165,7 @@ namespace MML3
 	template<typename T, typename MP, typename MS, typename MO>
 	class Matrix
 	{
-		typedef std::valarray<T>			array_;
+		typedef Vector<T>			array_;
 		// the index swapper for symmetric matrices
 		typedef MML3::if_necessary<MP, MS>	if_necessary;
 
@@ -264,14 +265,14 @@ namespace MML3
 		template<typename G>
 		Matrix&		assign(const G*src, index_t src_size, index_t nr, index_t nc);
 
-		void		fill(T val)												{ data_ = val; }
+		void		fill(T val)												{ data_.fill(val); }
 
 		//------------------------------------//
 		//      ACCESSORS                     //
 		//------------------------------------//
 		//  pointers to the first Matrix component
-		T*			data()													{ return data_.size() ? &(data_[0]) : nullptr; }
-		const T*	data()const												{ return data_.size() ? &(data_[0]) : nullptr; }
+		T*			data()													{ return data_.data(); }
+		const T*	data()const												{ return data_.data(); }
 
 		T*			begin()													{ return data();}
 		const T*	begin()	const											{ return data();}

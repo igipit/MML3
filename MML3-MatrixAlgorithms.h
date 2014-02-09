@@ -127,7 +127,7 @@ namespace MML3
 			if (x.nrows() != y.nrows() || x.ncols() != y.ncols())
 				throw std::range_error("Matrix& axpy(T a, const Matrix& x,  Matrix& y): size mismatch");
 
-			Cblas<T>::axpy((const int)x.size(), a, x.begin(), y.begin());
+			Cblas<T>::axpy((const int)x.size(), a, x.data(), y.data());
 			return y;
 		}
 
@@ -136,7 +136,7 @@ namespace MML3
 		{
 			if (x.size() != y.size())
 				throw std::range_error("Vector& axpy: size mismatch");
-			Cblas<T>::axpy((const int)x.size(), a, x.begin(), y.begin());
+			Cblas<T>::axpy((const int)x.size(), a, x.data(), y.data());
 			return y;
 		}
 
@@ -150,7 +150,7 @@ namespace MML3
 			if (N != size_t(y.size()))
 				throw std::range_error("T MML3::scalar_product(const Matrix<T>& x, const Matrix<T>& y): size mismatch");
 
-			return Cblas<T>::dot((int)N, x.begin(), y.begin());
+			return Cblas<T>::dot((int)N, x.data(), y.data());
 		}
 		template<typename T>
 		inline T dot(const Vector<T>& x, const Vector<T>& y)
@@ -168,14 +168,14 @@ namespace MML3
 		template<typename T, typename MP, typename MS, typename MO>
 		inline T  norm2(const Matrix<T, MP, MS, MO>& x)
 		{
-			return Cblas<T>::nrm2((const int)x.size(), x.begin());
+			return Cblas<T>::nrm2((const int)x.size(), x.data());
 		}
 
 		template<typename T>
 
 		inline T  norm2(const Vector<T>& x)
 		{
-			return Cblas<T>::nrm2(x.size(), x.begin());
+			return Cblas<T>::nrm2(x.size(), x.data());
 		}
 
 
@@ -185,14 +185,14 @@ namespace MML3
 		template<typename T, typename MP, typename MS, typename MO>
 		inline Matrix<T, MP, MS, MO>& scal(Matrix<T, MP, MS, MO>& x, T val)
 		{
-			Cblas<T>::scal(x.size(), val, x.begin());
+			Cblas<T>::scal(x.size(), val, x.data());
 			return x;
 		}
 
 		template<typename T>
 		inline Vector<T>& scal(Vector<T>& x, T val)
 		{
-			Cblas<T>::scal(x.size(), val, x.begin());
+			Cblas<T>::scal(x.size(), val, x.data());
 			return x;
 		}
 
@@ -203,13 +203,13 @@ namespace MML3
 		template<typename T, typename MP, typename MS, typename MO>
 		inline size_t imax(const Matrix<T, MP, MS, MO>& a)
 		{
-			return Cblas<T>::iamax((const int)a.size(), a.begin(), 1) + MML3::BASE::OFFSET;
+			return Cblas<T>::iamax((const int)a.size(), a.data(), 1) + MML3::BASE::OFFSET;
 		}
 
 		template<typename T>
 		inline size_t imax(const Vector<T>& a)
 		{
-			return Cblas<T>::iamax((const int)a.size(), a.begin(), 1) + MML3::BASE::OFFSET;
+			return Cblas<T>::iamax((const int)a.size(), a.data(), 1) + MML3::BASE::OFFSET;
 		}
 		//-------------------------------
 		//  i:= arg_min(x(i))
@@ -217,13 +217,13 @@ namespace MML3
 		template<typename T, typename MP, typename MS, typename MO>
 		inline size_t imin(const Matrix<T, MP, MS, MO>& a)
 		{
-			return Cblas<T>::iamin((const int)a.size(), a.begin(), 1) + MML3::BASE::OFFSET;
+			return Cblas<T>::iamin((const int)a.size(), a.data(), 1) + MML3::BASE::OFFSET;
 		}
 
 		template<typename T>
 		inline size_t imin(const Vector<T>& a)
 		{
-			return Cblas<T>::iamin((const int)a.size(), a.begin(), 1) + MML3::BASE::OFFSET;
+			return Cblas<T>::iamin((const int)a.size(), a.data(), 1) + MML3::BASE::OFFSET;
 		}
 
 
@@ -258,7 +258,7 @@ namespace MML3
 				throw std::runtime_error("Cbla::gemm size");
 
 
-			Cblas<T>::gemm(A.CblasOrder(), TRA, TRB, M, N, K, T(1), A.begin(), A.leading_dim(), pB->begin(), pB->leading_dim(), T(0), C.begin(), C.leading_dim());
+			Cblas<T>::gemm(A.CblasOrder(), TRA, TRB, M, N, K, T(1), A.data(), A.leading_dim(), pB->data(), pB->leading_dim(), T(0), C.data(), C.leading_dim());
 			if (tmp)
 				delete pB;
 			return C;
@@ -288,7 +288,7 @@ namespace MML3
 
 			if (B.size()!= K)
 				throw std::runtime_error("Cbla::gemm size");
-			Cblas<T>::gemv(A.CblasOrder(), TRA, A.nrows(), A.ncols(), T(1), A.begin(), A.leading_dim(), pB->data(), 1, T(0), C.data(), 1);
+			Cblas<T>::gemv(A.CblasOrder(), TRA, A.nrows(), A.ncols(), T(1), A.data(), A.leading_dim(), pB->data(), 1, T(0), C.data(), 1);
 			if (tmp)
 				delete pB;
 			return C;
@@ -313,9 +313,9 @@ namespace MML3
 
 				Cblas<T>::symm(B.CblasOrder(), Option::Right,
 					B.CblasSymUpLo(), M, N,
-					T(1), B.begin(), B.leading_dim(),
-					A.begin(), A.leading_dim(), T(0),
-					C.begin(), C.leading_dim());
+					T(1), B.data(), B.leading_dim(),
+					A.data(), A.leading_dim(), T(0),
+					C.data(), C.leading_dim());
 				return C;
 			}
 
@@ -336,9 +336,9 @@ namespace MML3
 					C.resize(M, N);
 				Cblas<T>::symm(A.CblasOrder(), Option::Left,
 					A.CblasSymUpLo(), M, N,
-					T(1), A.begin(), A.leading_dim(),
-					B.begin(), B.leading_dim(), T(0),
-					C.begin(), C.leading_dim());
+					T(1), A.data(), A.leading_dim(),
+					B.data(), B.leading_dim(), T(0),
+					C.data(), C.leading_dim());
 				return C;
 			}
 

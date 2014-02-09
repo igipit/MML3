@@ -9,12 +9,18 @@
 namespace MML3
 {
 
+	/** A very simple class Vector for arithmetic types (like std::valarray) derived from std::vector that allows 
+		component access by means of operator () with indexes 1-based
+		Access with operator [] conforms with C++ rule and thus is 0-based
+	*/
 	template<typename T>
 	class Vector:public std::vector<T>
 	{
 		enum: size_t{Base_=BASE::OFFSET};
 		typedef std::vector<T>	base_;
 	public:
+
+		static_assert(std::is_arithmetic<T>::value, "MML3::Vector is only for arithmetic types");
 
 
 		typedef typename base_::value_type		value_type;
@@ -36,6 +42,9 @@ namespace MML3
 		Vector(const std::initializer_list<T>& s)	:std::vector<T>(s){}
 		~Vector()= default;
 
+		// cast operator to std::vector<T>
+		operator base_(){ return *this; }
+
 		Vector&		swap(Vector& o)								{ base_::swap(o); return *this; }
 		Vector&		operator=(const Vector& o)					{ base_::operator=(o); return *this; }
 		Vector&		operator=(T val)							{ return fill(val); }
@@ -45,42 +54,24 @@ namespace MML3
 		void		free()										{ clear(); }
 		Vector&		fill(T val)									{ std::fill_n(begin(),size(), val); return *this; }
 
-	//	bool			print(std::ostream& os)const;
+	
+		// ACCESSORS 1-BASED
+		T&			operator()(size_t i)						{ return base_::operator[](i - Base_);}
+		const T&	operator()(size_t i)const					{ return base_::operator[](i - Base_); }
 
-		/*using		base_::begin;
-		using		base_::end;
-		using		base_::size;
-		using		base_::resize;
-		using		base_::data;
-		using		base_::clear;
-		using		base_::capacity;
-		using		base_::reserve;
-		using		base_::push_back;
-		using		base_::operator[];
-*/
-		// ACCESSORS
-		T&				operator()(size_t i)						{ return base_::operator[](i - Base_);}
-		const T&		operator()(size_t i)const					{ return base_::operator[](i - Base_); }
-
-
+		// value vector operators
 		Vector&		operator+=(const Vector& o);
 		Vector&		operator-=(const Vector& o);
 		Vector&		operator+();
-		Vector			operator-()const;
+		Vector		operator-()const;
 		Vector&		operator*=(T val);
 		Vector&		operator/=(T val);
 		//returns a copy of the Matrix transformed by func
-		Vector			apply(T func(T)) const;
+		Vector		apply(T func(T)) const;
 		Vector&		transform(T func(T));
 	};
 
-	template<typename T>
-	std::ostream& operator << (std::ostream& os, const Vector<T>& obj)
-	{
-		os << base_(obj);
-		return os;
-	}
-
+	
 	template<typename T>
 	inline Vector<T> operator +(const Vector<T>& x, const Vector<T>& y) { return (Vector<T>(x) += y); }
 
