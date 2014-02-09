@@ -51,7 +51,7 @@ namespace MML3
 
 
 		Vector<int_t> fpm(128);
-		feastinit(fpm.begin());
+		feastinit(fpm.data());
 
 		fpm(1) = 1; // manda in output messAGGI a runtime 
 		fpm(2) = 8; // numero di punti di quadratura (default=)8
@@ -82,8 +82,8 @@ namespace MML3
 		dfeast_scsrgv(&uplo, &n, 
 			A.column_value(), A.row_pos(), A.column_index(), 
 			B.column_value(), B.row_pos(), B.column_index(), 
-			fpm.begin(), &epsout, &loop, &emin, &eigenv_max,
-			&subspace_dim, L.begin(), Z.begin(), &founded_eig, eigen_error.begin(), 
+			fpm.data(), &epsout, &loop, &emin, &eigenv_max,
+			&subspace_dim, L.data(), Z.begin(), &founded_eig, eigen_error.data(), 
 			&info);
 		log << "\n ................ Fine messaggi solutore ...................\n\n";
 
@@ -91,7 +91,7 @@ namespace MML3
 		if (info != 0)
 			return info;
 
-		Vector<double> tmp_L(L.begin(), founded_eig);
+		Vector<double> tmp_L(L.data(), founded_eig);
 		L.swap(tmp_L);
 
 	return info;

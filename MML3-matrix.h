@@ -270,11 +270,14 @@ namespace MML3
 		//      ACCESSORS                     //
 		//------------------------------------//
 		//  pointers to the first Matrix component
-		T*			begin()													{ return data_.size() ? &(data_[0]) : nullptr; }
-		const T*	begin()const											{ return data_.size() ? &(data_[0]) : nullptr; }
+		T*			data()													{ return data_.size() ? &(data_[0]) : nullptr; }
+		const T*	data()const												{ return data_.size() ? &(data_[0]) : nullptr; }
+
+		T*			begin()													{ return data();}
+		const T*	begin()	const											{ return data();}
 		//  pointers to the last+1 Matrix component
-		T*			end()													{ return data_.size() ? (&(data_[0]) + data_.size()) : nullptr; }
-		const T*	end()const												{ return data_.size() ? (&(data_[0]) + data_.size()) : nullptr; }
+		T*			end()													{ return data_.size() ? data() + size() : nullptr; }
+		const T*	end()const												{ return data_.size() ? data() + size() : nullptr; }
 		// BASE::OFFSET-based indices (by default 1)
 		T&			operator()(index_t r, index_t c);
 		const T&	operator()(index_t r, index_t c)const;
@@ -511,7 +514,7 @@ inline auto Matrix<T, MP, MS, MO>::num_elements_(index_type nr, index_type nc)co
 		if (num_elements_(nr, nc) != src_size)
 			throw std::runtime_error("Matrix::assign(*src, src_size, nr, nc)");
 		resize(nr, nc);
-		std::copy(src, src + src_size, begin());
+		std::copy(src, src + src_size, data());
 		return *this;
 	}
 

@@ -159,7 +159,7 @@ namespace MML3
 			if (x.size() != y.size())
 				throw std::range_error(" vector dot : size mismatch");
 
-			return Cblas<T>::dot(x.size(), x.begin(), 1,  y.begin(), 1);
+			return Cblas<T>::dot(x.size(), x.data(), 1,  y.data(), 1);
 		}
 
 		//-------------------------------
@@ -288,13 +288,12 @@ namespace MML3
 
 			if (B.size()!= K)
 				throw std::runtime_error("Cbla::gemm size");
-			Cblas<T>::gemv(A.CblasOrder(), TRA, A.nrows(), A.ncols(), T(1), A.begin(), A.leading_dim(), pB->begin(), 1, T(0), C.begin(), 1);
+			Cblas<T>::gemv(A.CblasOrder(), TRA, A.nrows(), A.ncols(), T(1), A.begin(), A.leading_dim(), pB->data(), 1, T(0), C.data(), 1);
 			if (tmp)
 				delete pB;
 			return C;
 		}
-
-
+		
 
 			//---------------------------------------------
 			//  C= A * B  with A General and B symmetric

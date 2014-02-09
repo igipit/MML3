@@ -93,9 +93,9 @@ namespace MML3
 	// all memory that is necessary for the factorization. 
 	// --------------------------------------------------------------------
 	pardiso_phase = 11;
-	PARDISO(	pardiso_pt.begin(), &pardiso_maxfct, &pardiso_mnum, &pardiso_mtype, &pardiso_phase, 
-				&pardiso_n, pardiso_a, pardiso_ia, pardiso_ja, pardiso_perm.begin(), &pardiso_nrhs, 
-				pardiso_iparam.begin(), &pardiso_msglvl, 0, 0, &pardiso_error);
+	PARDISO(	pardiso_pt.data(), &pardiso_maxfct, &pardiso_mnum, &pardiso_mtype, &pardiso_phase, 
+				&pardiso_n, pardiso_a, pardiso_ia, pardiso_ja, pardiso_perm.data(), &pardiso_nrhs, 
+				pardiso_iparam.data(), &pardiso_msglvl, 0, 0, &pardiso_error);
 
 	if (pardiso_error != 0) 
 	{
@@ -111,9 +111,9 @@ namespace MML3
 	// Numerical factorization.
 	// --------------------------------------------------------------------
 	pardiso_phase = 22;
-	PARDISO(	pardiso_pt.begin(), &pardiso_maxfct, &pardiso_mnum, &pardiso_mtype, &pardiso_phase, 
-				&pardiso_n, pardiso_a, pardiso_ia, pardiso_ja, pardiso_perm.begin(), &pardiso_nrhs, 
-				pardiso_iparam.begin(), &pardiso_msglvl, 0, 0, &pardiso_error);
+	PARDISO(	pardiso_pt.data(), &pardiso_maxfct, &pardiso_mnum, &pardiso_mtype, &pardiso_phase, 
+				&pardiso_n, pardiso_a, pardiso_ia, pardiso_ja, pardiso_perm.data(), &pardiso_nrhs, 
+				pardiso_iparam.data(), &pardiso_msglvl, 0, 0, &pardiso_error);
 
 	if (pardiso_error != 0) 
 	{
@@ -137,9 +137,9 @@ namespace MML3
 	Matrix<double, M_PROP::GE, M_SHAPE::RE, M_ORD::COL> X(pardiso_n, pardiso_nrhs);
 	
 	
-	PARDISO(	pardiso_pt.begin(), &pardiso_maxfct, &pardiso_mnum, &pardiso_mtype, &pardiso_phase, 
-				&pardiso_n, pardiso_a, pardiso_ia, pardiso_ja, pardiso_perm.begin(), &pardiso_nrhs, 
-				pardiso_iparam.begin(), &pardiso_msglvl, B.begin(), X.begin(), &pardiso_error);
+	PARDISO(	pardiso_pt.data(), &pardiso_maxfct, &pardiso_mnum, &pardiso_mtype, &pardiso_phase, 
+				&pardiso_n, pardiso_a, pardiso_ia, pardiso_ja, pardiso_perm.data(), &pardiso_nrhs, 
+				pardiso_iparam.data(), &pardiso_msglvl, B.begin(), X.begin(), &pardiso_error);
 
 	if (pardiso_error != 0) 
 	{
@@ -152,9 +152,9 @@ namespace MML3
 	// Termination and release of memory. 
 	// --------------------------------------------------------------------
 	pardiso_phase = -1; /* Release internal memory. */
-	PARDISO(	pardiso_pt.begin(), &pardiso_maxfct, &pardiso_mnum, &pardiso_mtype, &pardiso_phase, 
-				&pardiso_n, pardiso_a, pardiso_ia, pardiso_ja, pardiso_perm.begin(), &pardiso_nrhs, 
-				pardiso_iparam.begin(), &pardiso_msglvl, 0, 0, &pardiso_error);
+	PARDISO(	pardiso_pt.data(), &pardiso_maxfct, &pardiso_mnum, &pardiso_mtype, &pardiso_phase, 
+		&pardiso_n, pardiso_a, pardiso_ia, pardiso_ja, pardiso_perm.data(), &pardiso_nrhs,
+				pardiso_iparam.data(), &pardiso_msglvl, 0, 0, &pardiso_error);
 
 
 	return 0;

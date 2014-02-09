@@ -3,70 +3,81 @@
 #include<iostream>
 #include<iomanip>
 #include<cassert>
+#include<vector>
 #include"MML3-config.h"
 
 namespace MML3
 {
 
 	template<typename T>
-	class Vector
+	class Vector:public std::vector<T>
 	{
 		enum: size_t{Base_=BASE::OFFSET};
+		typedef std::vector<T>	base_;
 	public:
+
+
+		typedef typename base_::value_type		value_type;
+		typedef typename base_::value_type		value_t;
+		typedef typename base_::size_type		size_type;
+		typedef typename base_::difference_type difference_type;
+		typedef typename base_::pointer			pointer;
+		typedef typename base_::const_pointer	const_pointer;
+		typedef typename base_::reference		reference;
+		typedef typename base_::const_reference const_reference;
+
+
 		// CTORs
 		Vector()= default;
-		explicit Vector(size_t sz)							:p_(sz?new T[sz]:nullptr), sz_(sz){}
-		Vector(const Vector& o)								:Vector(o.begin(),o.size()){}
-		Vector(Vector&& o)									:p_(o.p_.release()), sz_(o.sz_){}
-		Vector(const T* o, size_t sz)						:p_(sz?new T[sz]:nullptr), sz_(sz){ std::copy(o, o + sz, p_.get()); }
-		Vector(const std::initializer_list<T>& s)			:Vector(s.begin(), s.size()){}
+		explicit Vector(size_t sz)					:base_(sz){}
+		Vector(const Vector& o)						:base_(o){}
+		Vector(Vector&& o)							:base_(o){}
+		Vector(const T* o, size_t sz)				:std::vector<T>(o, o + sz){}
+		Vector(const std::initializer_list<T>& s)	:std::vector<T>(s){}
 		~Vector()= default;
-		Vector&		operator=(const Vector& o)				{ return assign(o.p_.get(), o.sz_);}
-		Vector&		operator=(T val)						{ return fill(val); }
-		Vector&		operator=(const std::initializer_list<T>& s) { return assign(s.begin(), s.size()); }
-		Vector&		assign(const T* o, size_t sz)			{ resize(sz); std::copy(o, o + sz, p_.get()); return *this; }
-		void		swap(Vector& o)							{ std::swap(p_,o.p_); std::swap(sz_, o.sz_); }
-		Vector&		resize(size_t sz)						{ if (sz_ != sz){Vector tmp(sz);swap(tmp);}  return *this; }
-		void		free()									{ p_.reset(); sz_ = 0; }
-		Vector&		fill(T val)								{ std::fill_n(p_.get(), sz_, val); return *this; }
 
+		Vector&		swap(Vector& o)								{ base_::swap(o); return *this; }
+		Vector&		operator=(const Vector& o)					{ base_::operator=(o); return *this; }
+		Vector&		operator=(T val)							{ return fill(val); }
+		Vector&		operator=(const std::initializer_list<T>& s){ base_::operator=(s); return *this; }
+		Vector&		assign(const T* o, size_t sz)				{ resize(sz); std::copy(o, o + sz, data()); return *this; }
+		
+		void		free()										{ clear(); }
+		Vector&		fill(T val)									{ std::fill_n(begin(),size(), val); return *this; }
+
+	//	bool			print(std::ostream& os)const;
+
+		/*using		base_::begin;
+		using		base_::end;
+		using		base_::size;
+		using		base_::resize;
+		using		base_::data;
+		using		base_::clear;
+		using		base_::capacity;
+		using		base_::reserve;
+		using		base_::push_back;
+		using		base_::operator[];
+*/
 		// ACCESSORS
-		T*			begin()									{return p_.get(); }
-		T*			end()									{return p_.get()+sz_; }
-		const T*	begin()const							{return p_.get(); }
-		const T*	end()const								{return p_.get() + sz_; }
-		T&			operator[](size_t i)					{return p_[i];}
-		const T&	operator[](size_t i)const				{return p_[i];}
-		T&			operator()(size_t i);
-		const T&	operator()(size_t i)const;
+		T&				operator()(size_t i)						{ return base_::operator[](i - Base_);}
+		const T&		operator()(size_t i)const					{ return base_::operator[](i - Base_); }
 
 
 		Vector&		operator+=(const Vector& o);
 		Vector&		operator-=(const Vector& o);
 		Vector&		operator+();
-		Vector		operator-()const;
+		Vector			operator-()const;
 		Vector&		operator*=(T val);
 		Vector&		operator/=(T val);
 		//returns a copy of the Matrix transformed by func
-		Vector		apply(T func(T)) const;
+		Vector			apply(T func(T)) const;
 		Vector&		transform(T func(T));
-
-
-		// INFO
-		size_t		size()const{ return sz_;}
-		bool		print(std::ostream& os)const;
-
-	private:
-	    std::unique_ptr<T[]>  p_;
-
-		size_t				sz_ = 0;
-
 	};
 
 	template<typename T>
 	std::ostream& operator << (std::ostream& os, const Vector<T>& obj)
 	{
-		obj.print(os);
+		os << base_(obj);
 		return os;
 	}
 
@@ -92,26 +103,10 @@ namespace MML3
 	//////////////////////////////////////////////////////////////////////////////////////////////
 	///					IMPLEMENTATION
 	//////////////////////////////////////////////////////////////////////////////////////////////
-	template<typename T>
-	inline T&	Vector<T>::operator()(size_t i)
-	{
-#ifdef MML3_TEST_INDEX_ON_ACCESS
-		assert(i>=Base_ && i < sz_+Base_);
-#endif
-		return p_[i - Base_];
-	}
-
-	template<typename T>
-	inline const T&	Vector<T>::operator()(size_t i)const
-	{
-#ifdef MML3_TEST_INDEX_ON_ACCESS
-		assert(i >= Base_ && i < sz_ + Base_);
-#endif
-		return p_[i - Base_];
-	}
+	
 
 
-	template<typename T>
+	/*template<typename T>
 	bool  Vector<T>::print(std::ostream& os)const
 	{
 		std::streamsize ssize = os.width();
@@ -122,7 +117,7 @@ namespace MML3
 		os << std::endl;
 		return os.good();
 	}
-
+*/
 
 
 
@@ -131,8 +126,9 @@ namespace MML3
 	{
 		if (size() != o.size())
 			throw std::runtime_error("Vector +=: size mismatch");
-		T*			dest = p_.get();
-		const T*	src = o.p_.get();
+		T*			dest = data();
+		const T*	src = o.data();
+		size_t sz_ = size();
 		for (size_t i = 0; i != sz_; ++i)
 			dest[i] += src[i];
 		return *this;
@@ -143,8 +139,9 @@ namespace MML3
 	{
 		if (size() != o.size())
 			throw std::runtime_error("Vector -=: size mismatch");
-		T*			dest = p_.get();
-		const T*	src = o.p_.get();
+		T*			dest = data();
+		const T*	src = o.data();
+		size_t sz_ = size();
 		for (size_t i = 0; i != sz_; ++i)
 			dest[i] -= src[i];
 		return *this;
@@ -158,41 +155,44 @@ namespace MML3
 	{
 		Vector tmp(sz_);
 		for (size_t i = 0; i != sz_; ++i)
-			tmp.p_[i] = -p_[i];
+			tmp.at(i) = -at(i);
 		return tmp;
 	}
 
 	template<typename T>
 	inline Vector<T>&	Vector<T>::operator*=(T val)
 	{
+		size_t sz_ = size();
 		for (size_t i = 0; i != sz_; ++i)
-			p_[i]*=val;
+			at(i)*=val;
 		return *this;
 	}
 
 	template<typename T>
 	inline Vector<T>&	Vector<T>::operator/=(T val)
 	{
+		size_t sz_ = size();
 		for (size_t i = 0; i != sz_; ++i)
-			p_[i] /= val;
+			at(i) /= val;
 		return *this;
 	}
 
 	template<typename T>
 	inline Vector<T>	Vector<T>::apply(T func(T)) const
 	{
+		size_t sz_ = size();
 		Vector tmp(sz_);
 		for (size_t i = 0; i != sz_; ++i)
-			tmp.p_[i] = func(p_[i]);
+			tmp.at(i) = func(at(i));
 		return tmp;
 	}
 
 	template<typename T>
 	inline Vector<T>&	Vector<T>::transform(T func(T))
 	{
-
+		size_t sz_ = size();
 		for (size_t i = 0; i != sz_; ++i)
-			p_[i] = func(p_[i]);
+			at(i) = func(at(i));
 		return *this;
 	}
 
