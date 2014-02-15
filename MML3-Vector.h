@@ -9,9 +9,12 @@
 namespace MML3
 {
 
-	/** A very simple class Vector for arithmetic types (like std::valarray) derived from std::vector that allows 
-		component access by means of operator () with indexes 1-based
-		Access with operator [] conforms with C++ rule and thus is 0-based
+	/** A  Vector class for arithmetic types (like std::valarray). 
+		It is derived from std::vector	and adds:
+			1) component access by operator () with 1-based indexes
+			2) the basic arithmetic operators +=,-=,/=,*=
+			3) apply, transform and fill methos
+		Component access with operator []  conforms with C++ rule and thus is 0-based
 	*/
 	template<typename T>
 	class Vector:public std::vector<T>
@@ -22,7 +25,6 @@ namespace MML3
 
 		static_assert(std::is_arithmetic<T>::value, "MML3::Vector is only for arithmetic types");
 
-
 		typedef typename base_::value_type		value_type;
 		typedef typename base_::value_type		value_t;
 		typedef typename base_::size_type		size_type;
@@ -31,35 +33,45 @@ namespace MML3
 		typedef typename base_::const_pointer	const_pointer;
 		typedef typename base_::reference		reference;
 		typedef typename base_::const_reference const_reference;
-
+		typedef typename base_::const_iterator	const_iterator;
 
 		// CTORs
 		Vector()= default;
-		explicit Vector(size_t sz)					:base_(sz){}
-		Vector(const Vector& o)						:base_(o){}
-		Vector(Vector&& o)							:base_(o){}
-		Vector(const T* o, size_t sz)				:std::vector<T>(o, o + sz){}
-		Vector(const std::initializer_list<T>& s)	:std::vector<T>(s){}
-		~Vector()= default;
+		explicit Vector(size_t sz)								:base_(sz){}
+		Vector(const Vector& o)									:base_(o){}
+		Vector(Vector&& o)										:base_(o){}
+		Vector(const T* o, size_t sz)							:base_(o, o + sz){}
 
+		// ci pensa il costruttore di base_ a verificare se il tipo Iter e' un iteratore
+		template<class Iter>
+		Vector(Iter beg, Iter end) : base_(beg, end){}
+	
+
+		Vector(const std::initializer_list<T>& s)				:base_(s){}
+		~Vector()= default;
 		// cast operator to std::vector<T>
 		operator base_(){ return *this; }
-
 		Vector&		swap(Vector& o)								{ base_::swap(o); return *this; }
 		Vector&		operator=(const Vector& o)					{ base_::operator=(o); return *this; }
 		Vector&		operator=(T val)							{ return fill(val); }
 		Vector&		operator=(const std::initializer_list<T>& s){ base_::operator=(s); return *this; }
 		Vector&		assign(const T* o, size_t sz)				{ resize(sz); std::copy(o, o + sz, data()); return *this; }
 		
-		void		free()										{ clear(); }
-		Vector&		fill(T val)									{ std::fill_n(begin(),size(), val); return *this; }
+		//void		free()										{ clear(); }
+		Vector&		fill(T val)									{ std::fill_n(data(),size(), val); return *this; }
 
-	
+#ifdef MML3_TEST_INDEX_ON_ACCESS
+		T&		operator[](size_t i)				{ return base_::at(i);}
+		const T&	operator[](size_t i)const			{ return base_::at(i); }
 		// ACCESSORS 1-BASED
-		T&			operator()(size_t i)						{ return base_::operator[](i - Base_);}
-		const T&	operator()(size_t i)const					{ return base_::operator[](i - Base_); }
+		T&		operator()(size_t i)				{ return base_::at(i - Base_); }
+		const T&	operator()(size_t i)const			{ return base_::at(i - Base_); }
+#else
+		T&		operator()(size_t i)				{ return base_::operator[](i - Base_); }
+		const T&	operator()(size_t i)const			{ return base_::operator[](i - Base_); }
+#endif
 
-		// value vector operators
+		// VALUE VECTOR OPERATORS
 		Vector&		operator+=(const Vector& o);
 		Vector&		operator-=(const Vector& o);
 		Vector&		operator+();
@@ -95,21 +107,6 @@ namespace MML3
 	///					IMPLEMENTATION
 	//////////////////////////////////////////////////////////////////////////////////////////////
 	
-
-
-	/*template<typename T>
-	bool  Vector<T>::print(std::ostream& os)const
-	{
-		std::streamsize ssize = os.width();
-		std::streamsize sprecision = os.precision();
-		os << "[" << size() <<"]"<< std::endl;
-		for (size_t r = 0; r != sz_; ++r)
-			os << std::setw(ssize) << std::setprecision(sprecision) << p_[r] << ' ';
-		os << std::endl;
-		return os.good();
-	}
-*/
-
 
 
 	template<typename T>

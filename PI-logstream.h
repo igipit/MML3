@@ -4,13 +4,13 @@
 
 #include<iomanip>
 #include<string>
-#include<vector>
 #include <iostream> 
+#include<fstream>
 
 
 #define SOURCE_INFO "File:" << __FILE__ << "\tLine:" << __LINE__ << "\t"
-
-
+//#define DEBUG_INFO "[DEBUG] File:" << __FILE__ << "\tLine:" << __LINE__ << "\t" << std::endl
+#define PRINT_DEBUG_INFO std::cerr << "[DEBUG] File:" << __FILE__ << "\tLine:" << __LINE__ << "\t" << std::endl;
 namespace PI
 {
 
@@ -18,28 +18,17 @@ namespace PI
 	std::string error(int id = 0, const std::string& msg ="");
 	std::string warning(int id = 0, const std::string& msg="");
 	std::string separator();
+	std::string debug(const std::string& msg);
 
-	template<typename CH>
-	std::basic_ostream<CH>& get_stdio();
 
-	template<>
-	inline std::basic_ostream<char>& get_stdio<char>()
-	{
-		return std::cout;
-	}
-
-	template<>
-	inline std::basic_ostream<wchar_t>& get_stdio<wchar_t>()
-	{
-		return std::wcout;
-	}
 
 
 	template<typename CH>
 	class basic_logbuf : public std::basic_streambuf<CH>
 	{
-		typedef std::basic_ostream <CH> ostream_t;
-	protected:
+		typedef std::basic_ostream <CH>		ostream_t;
+		typedef std::basic_ofstream<char>	ofstream_t;
+	public:
 		
 		// la definizione di questa funzione e' sufficente a far funzionare correttamente il buffer
 		// in quanto le funzioni della classe basic_streambuf la utilizzeranno per l'output
@@ -48,13 +37,19 @@ namespace PI
 			if (c != EOF)
 			{
 				bool eof = false;
-				for (auto ps : os_)
+				if (os_)
 				{
-					ps->put(c);
-					eof |= ps->eof();
+					os_->put(c);
+					eof|= os_->eof();
 				}
+				if (file_stream_.is_open())
+				{
+					file_stream_.put(c);
+					eof |= file_stream_.eof();
+				}
+				
 				if (eof)
-					c = EOF;
+					return  EOF;
 			}
 			return c;
 		}
@@ -64,11 +59,18 @@ namespace PI
 		{
 
 			bool failure = false;
-			for (auto ps : os_)
+			if (os_)
 			{
-				ps->write(s,num);
-				failure |= ps->fail();
+				os_->write(s,num);
+				failure |= os_->fail();
 			}
+
+			if (file_stream_.is_open())
+			{
+				file_stream_.write(s, num);
+				failure |= file_stream_.fail();
+			}
+		
 			if (failure)
 				return 0;
 			else
@@ -80,10 +82,16 @@ namespace PI
 		virtual int sync()
 		{
 			bool failure = false;
-			for (auto ps : os_)
+			
+			if(os_)
 			{
-				ps->flush();
-				failure |= ps->fail();
+				os_->flush();
+				failure |= os_->fail();
+			}
+			if(file_stream_.is_open())
+			{
+				file_stream_.flush();
+				failure |= file_stream_.fail();
 			}
 			if (failure)
 				return -1;
@@ -91,65 +99,37 @@ namespace PI
 				return 0;
 		}
 
-	public:
+	
 	
 		~basic_logbuf()
 		{
-			for (auto ps : os_)
-				ps->flush();
-			
+			if (file_stream_.is_open())
+				file_stream_.close();
 		}
 
-	public:
-
-		// static public interface
-
-		/// Ritorna l'unica istanza di basic_logbuf
-		static  basic_logbuf& I()
-		{
-			static basic_logbuf unique_instance(get_stdio<CH>());
-			return unique_instance;
-		}
-
-
-		/// ritorna un output stream associato  all'unico  logbuf
-		static ostream_t&  basic_logbuf::ostream()
-		{
-			static ostream_t os(&basic_logbuf::I());
-			return os;
-		}
-		
-		/// aggiunge uno stream di output al buffer
-		static basic_logbuf& add_ostream(ostream_t& o)
-		{
-
-			I().os_.push_back(&o);
-			return I();
-		}
-
-		/// rimuove un output stream dal buffer
-		static void  remove_ostream(size_t i)
-		{
-			std::vector<ostream_t*>  os = I().os_;
-
-			if (i < os.size())
-			{
-				os[i]->flush();
-				os.erase(os.begin() + i);
-			}
-		}
-
-		/// ritorna il numero di output streams su cui il buffer riversa l'output
-		static size_t num_ostreams(){ return I().os_.size(); }
-
-	private:
-
-		basic_logbuf(ostream_t& o){ os_.reserve(2); os_.push_back(&o); }
-		std::vector<ostream_t*>  os_;
 
 		
+		bool open(const std::string& filename, std::ios_base::openmode mode = std::ios_base::out)
+		{
+			close();
+			file_stream_.open(filename, mode);
+			return file_stream_.is_open();
+		}
 
+		void close()
+		{
+			if (file_stream_.is_open())
+				file_stream_.close();
+		}
+
+		basic_logbuf(ostream_t& o ):os_(&o){}
+
+		ostream_t *  os_ =nullptr;
+		ofstream_t	file_stream_;
 	};
+
+
+
 
 	
 	typedef basic_logbuf<char>		logbuf;
@@ -164,19 +144,17 @@ namespace PI
 	// basic_logbuf<char>::ostream()
 	// and, respectively, to
 	// basic_logbuf<wchar_t>::ostream()
-	extern std::ostream&			log;
-	extern std::wostream&			wlog;
 	
 
 
 
 	/** Usage
-	when you include PI-logstream.cpp in the project you have a global object (one and only one) PI::log (and PI::wlog)
+	when you include PI-logstream.cpp in the project you have a global object (one and only one) std::clog (and PI::wlog)
 	of type std::ostream& (and std::wostream&) for sending the log output (by default it redirects to the  stdio terminal)
 
 	if you need a multiple output add  new ostreams to the log buffer by means of static methods
-	PI::logbuf::add(new_ostream1);
-	PI::logbuf::add(new_ostream2);
+	std::clogbuf::add(new_ostream1);
+	std::clogbuf::add(new_ostream2);
 	...
 	if the added ostream is connected to a file (if it is an ofstream) it is your responsibility 
 	to open and close the stream

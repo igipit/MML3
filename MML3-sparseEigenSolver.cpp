@@ -1,4 +1,3 @@
-
 #include"MML3-Vector.h"
 #include"MML3-Matrix.h"
 #include"mml3-sparseeigensolver.h"
@@ -83,7 +82,7 @@ namespace MML3
 			A.column_value(), A.row_pos(), A.column_index(), 
 			B.column_value(), B.row_pos(), B.column_index(), 
 			fpm.data(), &epsout, &loop, &emin, &eigenv_max,
-			&subspace_dim, L.data(), Z.begin(), &founded_eig, eigen_error.data(), 
+			&subspace_dim, L.data(), Z.data(), &founded_eig, eigen_error.data(), 
 			&info);
 		log << "\n ................ Fine messaggi solutore ...................\n\n";
 

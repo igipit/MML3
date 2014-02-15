@@ -10,7 +10,7 @@
 #include<vector>
 #include<stdexcept>
 #include<cassert>
-#include"MML3-memory_array_.h"
+//#include"MML3-memory_array_.h"
 #include"MML3-Vector.h"
 #include"MML3-config.h"
 #include"MML3-iSet.h"
@@ -199,7 +199,7 @@ namespace MML3
 		Matrix()					=default;
 		Matrix(const Matrix& rval)	=default;
 		Matrix(Matrix&& rval) :data_(std::move(rval.data_)), nr_(rval.nr_), nc_(rval.nc_){ rval.nr_ = 0; rval.nc_ = 0; }
-		explicit Matrix(index_t nr, index_t nc = 1)							{resize(nr, nc);}
+		explicit Matrix(index_t nr, index_t nc)								{resize(nr, nc);}
 		Matrix(const std::initializer_list<T>& s)							{assign(s); }
 		Matrix(const std::initializer_list<std::initializer_list<T>>& s)	{assign(s);}
 		Matrix(const sub_matrix_t& o)										{assign(o);}
@@ -207,9 +207,9 @@ namespace MML3
 		Matrix(const T* src, index_t src_size, index_t nr, index_t nc)		{assign(src,src_size,nr,nc); }
 		~Matrix() =default;
 
-		Matrix&		resize(index_t nr, index_t nc = 1);
+		Matrix&		resize(index_t nr, index_t nc );
 		void		swap(Matrix& o)											{data_.swap(o.data_); std::swap(nr_, o.nr_); std::swap(nc_, o.nc_); }
-		void		free()													{data_.free(); nr_ = nc_ = 0; }
+		void		clear()													{data_.clear(); nr_ = nc_ = 0; }
 
 		//------------------------------------//
 		//      INFO                          //
@@ -274,11 +274,6 @@ namespace MML3
 		T*			data()													{ return data_.data(); }
 		const T*	data()const												{ return data_.data(); }
 
-		T*			begin()													{ return data();}
-		const T*	begin()	const											{ return data();}
-		//  pointers to the last+1 Matrix component
-		T*			end()													{ return data_.size() ? data() + size() : nullptr; }
-		const T*	end()const												{ return data_.size() ? data() + size() : nullptr; }
 		// BASE::OFFSET-based indices (by default 1)
 		T&			operator()(index_t r, index_t c);
 		const T&	operator()(index_t r, index_t c)const;
@@ -289,8 +284,8 @@ namespace MML3
 		T&			at_(index_t r, index_t c)								{ return data_[pos_0b_(r, c)]; }
 		const T&	at_(index_t r, index_t c)const							{ return data_[pos_0b_(r, c)]; }
 		// C access operator 0-b defined only for Row major Rectangular matrices
-		T*			operator[](index_t r)									{ static_assert(IS::RowMajor && IS::RE, " C access operator [] is defined only for Row major rectangular matrices"); return begin() + r*nc_; }
-		const T*	operator[](index_t r)const								{ static_assert(IS::RowMajor && IS::RE, " C access operator [] is defined only for Row major rectangular matrices"); return begin() + r*nc_; }
+		T*			operator[](index_t r)									{ static_assert(IS::RowMajor && IS::RE, " C access operator [] is defined only for Row major rectangular matrices"); return data() + r*nc_; }
+		const T*	operator[](index_t r)const								{ static_assert(IS::RowMajor && IS::RE, " C access operator [] is defined only for Row major rectangular matrices"); return data() + r*nc_; }
 
 
 		//------------------------------------//
@@ -541,8 +536,8 @@ inline auto Matrix<T, MP, MS, MO>::num_elements_(index_type nr, index_type nc)co
 			std::swap(x, y);
 		size_t end_i = std::min(y, ldin),
 			   end_j = std::min(x, ldout);
-		const T* in = M.begin();
-		T* out = R.begin();
+		const T* in = M.data();
+		T* out = R.data();
 		for (size_t i = 0; i < end_i; i++)
 				for (size_t j = 0; j < end_j; j++)
 					out[i*ldout + j] = in[j*ldin + i];
@@ -554,14 +549,14 @@ inline auto Matrix<T, MP, MS, MO>::num_elements_(index_type nr, index_type nc)co
 	Matrix<T, M_PROP::GE, M_SHAPE::UT, M_ORD::COL>     transpose(const Matrix<T, M_PROP::GE, M_SHAPE::LT, M_ORD::ROW>& M)
 	{
 		Matrix<T, M_PROP::GE, M_SHAPE::UT, M_ORD::COL> R(M.ncols(), M.nrows());
-		std::copy(M.begin(), M.end(), R.begin());
+		std::copy(M.data(), M.end(), R.data());
 		return R;
 	}
 	template<typename T>
 	Matrix<T, M_PROP::GE, M_SHAPE::UT, M_ORD::ROW>     transpose(const Matrix<T, M_PROP::GE, M_SHAPE::LT, M_ORD::COL>& M)
 	{
 		Matrix<T, M_PROP::GE, M_SHAPE::UT, M_ORD::ROW> R(M.ncols(), M.nrows());
-		std::copy(M.begin(), M.end(), R.begin());
+		std::copy(M.data(), M.data()+M.size(), R.data());
 		return R;
 	}
 
@@ -569,7 +564,7 @@ inline auto Matrix<T, MP, MS, MO>::num_elements_(index_type nr, index_type nc)co
 	Matrix<T, M_PROP::GE, M_SHAPE::LT, M_ORD::ROW>     transpose(const Matrix<T, M_PROP::GE, M_SHAPE::UT, M_ORD::COL>& M)
 	{
 		Matrix<T, M_PROP::GE, M_SHAPE::LT, M_ORD::ROW> R(M.ncols(), M.nrows());
-		std::copy(M.begin(), M.end(), R.begin());
+		std::copy(M.data(), M.data() + M.size(), R.data());
 		return R;
 	}
 
@@ -577,7 +572,7 @@ inline auto Matrix<T, MP, MS, MO>::num_elements_(index_type nr, index_type nc)co
 	Matrix<T, M_PROP::GE, M_SHAPE::LT, M_ORD::COL>     transpose(const Matrix<T, M_PROP::GE, M_SHAPE::UT, M_ORD::ROW>& M)
 	{
 		Matrix<T, M_PROP::GE, M_SHAPE::LT, M_ORD::COL> R(M.ncols(), M.nrows());
-		std::copy(M.begin(), M.end(), R.begin());
+		std::copy(M.data(), M.data() + M.size(), R.data());
 		return R;
 	}
 
@@ -586,13 +581,21 @@ inline auto Matrix<T, MP, MS, MO>::num_elements_(index_type nr, index_type nc)co
 	template<typename T, typename MP, typename MS, typename MO>
 	auto Matrix<T, MP, MS, MO>::resize(index_t nr, index_t nc )->Matrix&
 	{
-		if (!test_size(nr, nc))
-			throw std::runtime_error("MML3::Matrix::resize(nr,nc): dimensions incompatible with the matrix type");
-		index_t new_sz = num_elements_(nr, nc);
-		if (new_sz != data_.size())
-			data_.resize(new_sz);
-		nr_=nr;
-		nc_=nc;
+		if (nr != nr_ || nc != nc_)
+		{
+			if (!test_size(nr, nc))
+				throw std::runtime_error("MML3::Matrix::resize(nr,nc): dimensions incompatible with the matrix type");
+			index_t new_sz = num_elements_(nr, nc);
+			if (!new_sz)
+				clear();
+			else
+			{
+				if (new_sz != size() )
+					data_.resize(new_sz);
+				nr_ = nr;
+				nc_ = nc;
+			}
+		}
 		return *this;
 	}
 
@@ -682,7 +685,7 @@ inline auto Matrix<T, MP, MS, MO>::num_elements_(index_type nr, index_type nc)co
 
 		std::int64_t type_[7] = { nr_, nc_, type<index_t>::id(), type<T>::id(), MP::ID, MS::ID,MO::ID };
 		f.write(reinterpret_cast<const char*>(type_), sizeof(type_));
-		f.write(reinterpret_cast<const char*>(begin()), size()*sizeof(T));
+		f.write(reinterpret_cast<const char*>(data()), size()*sizeof(T));
 		return f.good() ? 0 : -2;
 	}
 
@@ -708,7 +711,7 @@ inline auto Matrix<T, MP, MS, MO>::num_elements_(index_type nr, index_type nc)co
 			)
 			return -3;
 		resize(index_t(type_[0]), index_t(type_[1]));
-		f.read(reinterpret_cast<char*>(begin()), size()*sizeof(T));
+		f.read(reinterpret_cast<char*>(data()), size()*sizeof(T));
 		return f.good() ? 0 : -2;
 	}
 
@@ -753,7 +756,7 @@ inline auto Matrix<T, MP, MS, MO>::num_elements_(index_type nr, index_type nc)co
 	{
 		size_t sz = s.size();
 		resize(sz, 1);
-		std::copy(s.begin(), s.end(), begin());
+		std::copy(s.begin(), s.end(), data());
 		return *this;
 	}
 
@@ -769,8 +772,8 @@ inline auto Matrix<T, MP, MS, MO>::num_elements_(index_type nr, index_type nc)co
 		Matrix A(nr, nc);
 		// inizializzo il generatore
 		srand((unsigned)time(NULL));
-		T*        p = A.begin();
-		const T*  end = A.end();
+		T*        p = A.data();
+		const T*  end = A.data() + A.size();
 
 		while (p != end)
 			*p++ = mean + (T(rand()) / (RAND_MAX ) - 0.5) * delta;

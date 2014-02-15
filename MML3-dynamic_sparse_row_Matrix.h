@@ -27,7 +27,8 @@
 
 #include"MML3-matrix.h"
 #include"MML3-sparseMatrix.h"
-
+#include"MML3-ordered_list_map.h"
+#include"MML3-ordered_list_slist.h"
 
 
 
@@ -36,46 +37,42 @@ namespace MML3{
 /// \addtogroup MATRICES
 // @{
 
-// Dynamic Sparse Compressed Row  Matrix (index base 1)
+// Dynamic Sparse Row ordered  Matrix (index base 1)
 // "Dynamic" refers to the sparsity structure : it is always possible to add components
 	
-	template<	typename	VALUE_TYPE,				// the matrix component type
-				typename	IDX_TYPE = int_t,		// the matrix index type
-				class       MP = M_PROP::GE		// GE for general, SYM for symmetric matrices
+	template<	typename	VAL,					// the matrix component type
+				typename	IDX = int_t,			// the matrix index type
+				class       MP = M_PROP::GE,		// GE for general, SYM for symmetric matrices
+				class       ROW_T=ordered_list_map<IDX,VAL>  // by default rows are managed by std::map based lists
 				>
-	class dynamic_sparse_CSR_Matrix;
+	class dynamic_sparse_row_Matrix;
 
 	template<typename T>
-	using 	dynamic_sparse_matrix		= dynamic_sparse_CSR_Matrix<T,int_t, M_PROP::GE>;
+	using 	dynamic_sparse_matrix		= dynamic_sparse_row_Matrix<T,int_t, M_PROP::GE>;
 			
 	template<typename T>
-	using 	dynamic_sparse_sym_matrix	= dynamic_sparse_CSR_Matrix<T,int_t, M_PROP::SYM>;
+	using 	dynamic_sparse_sym_matrix	= dynamic_sparse_row_Matrix<T,int_t, M_PROP::SYM>;
 	
 // WARNING  !!!
-// be careful in changing the index_type (IDX_TYPE). Sparse solver algorithms generally require the type (int) that is int32 or int64 
+// be careful in changing the index_type (IDX). Sparse solver algorithms generally require the type (int) that is int32 or int64 
 // depending on the machine
 
 	
 
-/** Class dynamic_sparse_CSR_Matrix<VAL, IDX> : Matrici sparse con allocazione dinamica ottimizzata organizzate per righe.
+/** Class dynamic_sparse_row_Matrix<VAL, IDX> : Matrici sparse con allocazione dinamica ottimizzata organizzate per righe.
  Gestisce  matrici sparse con componenti di tipo VAL e indici di tipo IDX mediante un array
  di liste concatenate semplici ordinate (ogni riga è una lista). E' dotata di un allocatore di memoria di default ottimizzato che gestisce 
  la memoria in blocchi di allocazione. Il blocco di allocazione  è il numero di elementi (di tipo VAL) che vengono allocati  ogni qualvolta 
  è esaurita la memoria riservata ed è  richiesto l'inserimento di un nuovo elemento.
  Gli indici partono da 1.
  */
-template<typename VALUE_TYPE,typename IDX_TYPE,class MP>
-class dynamic_sparse_CSR_Matrix : public sparseMatrix<VALUE_TYPE,IDX_TYPE>
+template<typename VAL,typename IDX,class MP, class ROW_T>
+class dynamic_sparse_row_Matrix : public sparseMatrix<VAL,IDX>
 {
-	typedef sparseMatrix<VALUE_TYPE, IDX_TYPE>		base_matrix_t;
-	typedef  std::map<IDX_TYPE,VALUE_TYPE>			row_t;
-	
+	typedef sparseMatrix<VAL, IDX>		base_matrix_t;
+	typedef  ROW_T						row_t;
+		
 public:
-	
-
-	typedef typename row_t::iterator				col_iterator;	///< il tipo dell'iteratore sugli elementi delle righe
-	typedef typename row_t::const_iterator			const_col_iterator;
-	
 	
 	enum IS :bool {
 		RowMajor = true,
@@ -89,17 +86,17 @@ public:
 	//-------------------------------------------------------------------------
 	// COMMON INTERFACE
 	//-------------------------------------------------------------------------
-	typedef VALUE_TYPE									value_t;
-	typedef IDX_TYPE									index_t;
-	typedef iSet										iset_t;
-	typedef base_matrix_t::inserter_matrix_t			inserter_matrix_t;
-	typedef base_matrix_t::inserter_sym_matrix_t		inserter_sym_matrix_t;
+	typedef VAL										value_t;
+	typedef IDX										index_t;
+	typedef iSet									iset_t;
+	typedef base_matrix_t::inserter_matrix_t		inserter_matrix_t;
+	typedef base_matrix_t::inserter_sym_matrix_t	inserter_sym_matrix_t;
 	
 
-	dynamic_sparse_CSR_Matrix()=default;
-	dynamic_sparse_CSR_Matrix(const dynamic_sparse_CSR_Matrix& );
-	dynamic_sparse_CSR_Matrix(dynamic_sparse_CSR_Matrix&& );
-	~dynamic_sparse_CSR_Matrix()																{ destroy(); }
+	dynamic_sparse_row_Matrix()=default;
+	dynamic_sparse_row_Matrix(const dynamic_sparse_row_Matrix& );
+	dynamic_sparse_row_Matrix(dynamic_sparse_row_Matrix&& );
+	~dynamic_sparse_row_Matrix()																{ destroy(); }
 	void				destroy();
 	index_t				nrows()const														{ return row_.size(); }
 	index_t				ncols()const														{ return ncols_; }
@@ -109,21 +106,21 @@ public:
 	bool				test_subscripts(index_t r, index_t c)const;
 	void				fill(const value_t&);
 
-	// get the pointer to the component (i,j) if it exists, nullptr elsewhere
+	/// get the pointer to the component (i,j) if it exists, nullptr elsewhere
 	const	value_t*	get_p(index_t i, index_t j)const;
 			value_t*	get_p(index_t i, index_t j);
 	
+	/// inserts the value val at position (i,j); if the component does not exists it is created
 	value_t&			put(index_t i, index_t j, const value_t& val);
+	/// sum value val at the compoent (i,j); if the component does not exists it is created
 	value_t&			sum(index_t i, index_t j, const value_t& val);
 
 	void				put(const iSet& ir, const iSet& ic, const inserter_matrix_t& K);
-
 	void				sum(const iSet& ir, const iSet& ic, const inserter_matrix_t& K);
 	void				sum(const iSet& irc, const inserter_matrix_t& K);
 	void				sum(const iSet& irc, const inserter_sym_matrix_t& K);
 
-
-	//int					copy2(index_t rpos_sz, index_t nnz, index_t rpos[], index_t cidx[], value_t  val[])const;
+	//int				copy2(index_t rpos_sz, index_t nnz, index_t rpos[], index_t cidx[], value_t  val[])const;
 	int					fwrite(const std::string& fname)const;
 	int					fread(const std::string&);
 	void				print(std::ostream& os)const;
@@ -133,24 +130,27 @@ public:
 	// EXTENDED INTERFACE
 	//-------------------------------------------------------------------------	
 	
+	typedef typename row_t::iterator		col_iterator;
+	typedef typename row_t::const_iterator	const_col_iterator;
+
 	///sparse matrix  nr X nc with allocation blocks of bsz elements (every time memory is exausted a memory block of bsz elements is created) 
 	//@param nr number of rows
 	//@param nc number of cols
 	//@param bsz size of the allocation block in number of componentsstored in the block. if bsz is left unspecified than it is assumed bsz= max(nr,nc)+1  
-						dynamic_sparse_CSR_Matrix(index_t nr, index_t nc, size_t bsz = 0);
+						dynamic_sparse_row_Matrix(index_t nr, index_t nc, size_t bsz = 0);
 	///Ridimensiona la matrice sparsa, deallocando prima tutto il suo contenuto precedente.
 	///@param R numero di righe
 	///@param C numero di colonne
 	///@dimensione (in numero di componenti) del blocco di allocazione. Se bsz non viene specificato allora il blocco di allocazione è di max(C,R)+1 elementi 
 	void				resize(index_t R, index_t C, size_t bsz=0);
 	/// Scambio
-	void				swap(dynamic_sparse_CSR_Matrix& rhs);
+	void				swap(dynamic_sparse_row_Matrix& rhs);
 	/// Ritorna un iteratore che punta al primo elemento della lista i-esima
-	col_iterator		row_begin(index_t i){return row_[i-1].begin();}
-	const_col_iterator	row_begin(index_t i)const{return row_[i-1].begin();}
+	col_iterator		row_begin(index_t i){return row_[i-1]->begin();}
+	const_col_iterator	row_begin(index_t i)const{return row_[i-1]->begin();}
 	/// Ritorna un iteratore che punta all'elemento dopo l'ultimo
-	const_col_iterator	row_end(index_t i)const{ return row_[i - 1].end(); }
-	col_iterator		row_end(index_t i){ return row_[i - 1].end(); }
+	const_col_iterator	row_end(index_t i)const{ return row_[i - 1]->end(); }
+	
 	
 	///Informazioni sulla struttura della matrice
 	///@param NCR in uscita ha dimensione pari al numero di righe della matrice sparsa e contiene  il numero di elementi diversi da zero di ogni riga
@@ -159,7 +159,7 @@ public:
 	void				get_min_max_diag(index_t& row_idx_min, value_t& val_min , index_t& row_idx_max, value_t& val_max)const;
 
 
-	static dynamic_sparse_CSR_Matrix  get_random_matrix(index_t nr, index_t nc, value_t sparsity, value_t mean, value_t range);
+	static dynamic_sparse_row_Matrix  get_random_matrix(index_t nr, index_t nc, value_t sparsity, value_t mean, value_t range);
 private:
 
 	void				sym_put_(const iSet& ir, const iSet& ic, const inserter_matrix_t& K);
@@ -174,8 +174,9 @@ private:
 	template<typename MAT>
 	void				gen_sum_(const iSet& irc, const MAT& K);
 	
-	index_t					ncols_=0;
-	std::vector<row_t>	row_;
+	index_t				ncols_=0;
+	std::vector<row_t*>	row_;
+	
 };
 
 
@@ -206,32 +207,33 @@ inline T get_max_val(const T* p, size_t sz)
 
 
 
-template<typename	VAL,typename	IDX, class MP>
-dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::dynamic_sparse_CSR_Matrix(index_t R, index_t C, size_t bsz):
+template<typename VAL, typename IDX, class MP, class ROW_T>
+dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::dynamic_sparse_row_Matrix(index_t R, index_t C, size_t bsz) :
 	ncols_(C), 
 	row_(R)
 {
-	
+	for (size_t i = 0; i != R; ++i)
+		row_[i] = new row_t;
 }
 
-template<typename	VAL, typename	IDX, class MP>
-dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::dynamic_sparse_CSR_Matrix(const dynamic_sparse_CSR_Matrix& rhs)
+template<typename VAL, typename IDX, class MP, class ROW_T>
+dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::dynamic_sparse_row_Matrix(const dynamic_sparse_row_Matrix& rhs)
 :ncols_(rhs.ncols_), row_(rhs.nrows()), row_(rhs.row_)
 {
 		
 }
 
 
-template<typename	VAL, typename	IDX, class MP>
-dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::dynamic_sparse_CSR_Matrix(dynamic_sparse_CSR_Matrix&& rhs)
+template<typename VAL, typename IDX, class MP, class ROW_T>
+dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::dynamic_sparse_row_Matrix(dynamic_sparse_row_Matrix&& rhs)
 :ncols_(rhs.ncols_), row_(std::move(rhs.row_))
 {
 	rhs.ncols_ = 0;
 }
 
 
-template<typename	VAL, typename	IDX, class MP>
-inline bool dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::test_subscripts(index_t r, index_t c)const
+template<typename VAL, typename IDX, class MP, class ROW_T>
+inline bool dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::test_subscripts(index_t r, index_t c)const
 {
 	if ((r > nrows() || r<1) || (c > ncols() || c<1))
 		return false;
@@ -240,27 +242,31 @@ inline bool dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::test_subscripts(index_t r, 
 
 
 		/// Ridimensiona il vettore di liste deallocando prima tutto il suo contenuto precedente
-template<typename	VAL, typename	IDX, class MP>
-void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::resize(index_t R, index_t C, size_t bsz)
+template<typename VAL, typename IDX, class MP, class ROW_T>
+void dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::resize(index_t R, index_t C, size_t bsz)
 	{
 		destroy();
-		dynamic_sparse_CSR_Matrix	tmp(R,C,bsz);
+		dynamic_sparse_row_Matrix	tmp(R,C,bsz);
 		swap(tmp);
 	}
 
 
 
 	/// Distrugge la matrice deallocando le risorse
-template<typename	VAL, typename	IDX, class MP>
-void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
+template<typename VAL, typename IDX, class MP, class ROW_T>
+void dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::destroy()
 {
+	for (size_t i = 0; i != row_.size(); ++i)
+	{
+		delete row_[i];
+		row_[i] = nullptr;
+	}
 	row_.clear();
-	row_.shrink_to_fit();
 	ncols_ = 0;
 }
 
-	template<typename	VAL, typename	IDX, class MP>
-	void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::swap(dynamic_sparse_CSR_Matrix& rhs)
+template<typename VAL, typename IDX, class MP, class ROW_T>
+	void dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::swap(dynamic_sparse_row_Matrix& rhs)
 	{
 		std::swap(ncols_,rhs.ncols_);
 		std::swap(row_,rhs.row_);
@@ -269,37 +275,29 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 
 	
 
-	template<typename	VAL, typename	IDX, class MP>
-	inline auto  dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::get_p(index_t i, index_t j)const ->const value_t*
+	template<typename VAL, typename IDX, class MP, class ROW_T>
+	inline auto  dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::get_p(index_t i, index_t j)const ->const value_t*
 	{
 		if (i <1 || i> nrows())
-			throw std::out_of_range("dynamic_sparse_CSR_Matrix<>::get_p");
+			throw std::out_of_range("dynamic_sparse_row_Matrix<>::get_p");
 		if (IS::SYM && j < i)
 			std::swap(i, j);
-		auto it = row_[i - 1].find(j);
-		if (it == row_[i - 1].end())
-			return nullptr;
-		else
-			return &(it->second);
+		return row_[i - 1]->find(j);
 	}
 
-	template<typename	VAL, typename	IDX, class MP>
-	inline auto  dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::get_p(index_t i, index_t j)-> value_t*
+	template<typename VAL, typename IDX, class MP, class ROW_T>
+	inline auto  dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::get_p(index_t i, index_t j)-> value_t*
 	{
 		if (i <1 || i> nrows())
-			throw std::out_of_range("dynamic_sparse_CSR_Matrix<>::get_p");
+			throw std::out_of_range("dynamic_sparse_row_Matrix<>::get_p");
 		if (IS::SYM && j < i)
 			std::swap(i, j);
-		auto it = row_[i - 1].find(j);
-		if (it == row_[i - 1].end())
-			return nullptr;
-		else
-			return &(it->second);
+		return row_[i - 1]->find(j);
 	}
 
 	
-	template<typename	VAL, typename	IDX, class MP>
-	inline void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::put(const iSet& ir, const iSet& ic, const inserter_matrix_t& K)
+	template<typename VAL, typename IDX, class MP, class ROW_T>
+	inline void dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::put(const iSet& ir, const iSet& ic, const inserter_matrix_t& K)
 	{
 		if (IS::SYM)
 			sym_put_(ir, ic, K);
@@ -308,12 +306,12 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 	}
 
 
-	template<typename	VAL, typename	IDX, class MP>
-	inline void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::gen_put_(const iSet& ir, const iSet& ic, const inserter_matrix_t& K)
+	template<typename VAL, typename IDX, class MP, class ROW_T>
+	inline void dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::gen_put_(const iSet& ir, const iSet& ic, const inserter_matrix_t& K)
 	{
 		size_t NR = nrows(), NC = ncols();
 		if (index_t(ir.max()) > nrows() || index_t(ic.max()) > ncols())
-			throw std::out_of_range("dynamic_sparse_CSR_Matrix::gen_put_");
+			throw std::out_of_range("dynamic_sparse_row_Matrix::gen_put_");
 		size_t R, C;
 		for (size_t r = 1, rend=ir.size()+1;	r != rend; ++r)
 		{
@@ -325,19 +323,19 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 				C = ic(c);
 				if (C == IDX(0))
 					continue;
-				row_[R - 1][C]=K(r, c);
+				row_[R - 1]->value_at(C) = K(r, c);
 			}
 		}
 	}
 	
 
 
-	template<typename	VAL, typename	IDX, class MP>
-	inline void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::sym_put_(const iSet& ir, const iSet& ic, const inserter_matrix_t& K)
+	template<typename VAL, typename IDX, class MP, class ROW_T>
+	inline void dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::sym_put_(const iSet& ir, const iSet& ic, const inserter_matrix_t& K)
 	{
 		size_t NR = nrows(), NC = ncols(), R, C;
 		if (index_t(ir.max())>nrows() || index_t(ic.max())> ncols())
-			throw std::out_of_range("dynamic_sparse_CSR_Matrix::sym_put_");
+			throw std::out_of_range("dynamic_sparse_row_Matrix::sym_put_");
 
 
 		for (size_t r = 1, rend=ir.size()+1; r != rend; ++r)
@@ -350,15 +348,15 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 				C = ic(c);
 				if (C == IDX(0) || C < R)
 					continue;
-				row_[R - 1][C]=K(r, c);
+				row_[R - 1]->value_at(C) = K(r, c);
 			}
 		}
 	}
 
 
 
-	template<typename	VAL, typename	IDX, class MP>
-	inline void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::sum(const iSet& ir, const iSet& ic, const inserter_matrix_t& K)
+	template<typename VAL, typename IDX, class MP, class ROW_T>
+	inline void dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::sum(const iSet& ir, const iSet& ic, const inserter_matrix_t& K)
 	{
 		if (IS::SYM)
 			sym_sum_(ir, ic, K);
@@ -366,8 +364,8 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 			gen_sum_(ir, ic, K);
 	}
 
-	template<typename	VAL, typename	IDX, class MP>
-	inline void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::sum(const iSet& irc, const inserter_matrix_t& K)
+	template<typename VAL, typename IDX, class MP, class ROW_T>
+	inline void dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::sum(const iSet& irc, const inserter_matrix_t& K)
 	{
 		if (IS::SYM)
 			sym_sum_(irc, K);
@@ -375,8 +373,8 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 			gen_sum_(irc, K);
 	}
 
-	template<typename	VAL, typename	IDX, class MP>
-	inline void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::sum(const iSet& irc, const inserter_sym_matrix_t& K)
+	template<typename VAL, typename IDX, class MP, class ROW_T>
+	inline void dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::sum(const iSet& irc, const inserter_sym_matrix_t& K)
 	{
 		if (IS::SYM)
 			sym_sum_(irc, K);
@@ -385,15 +383,14 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 	}
 
 	
-	template<typename	VAL, typename	IDX, class MP>
-	inline void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::gen_sum_(const iSet& ir, const iSet& ic, const inserter_matrix_t& K)
+	template<typename VAL, typename IDX, class MP, class ROW_T>
+	inline void dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::gen_sum_(const iSet& ir, const iSet& ic, const inserter_matrix_t& K)
 	{
 		
 		if (index_t(ir.max()) > nrows() || index_t(ic.max())>ncols())
-			throw std::out_of_range("dynamic_sparse_CSR_Matrix::gen_sum_");
+			throw std::out_of_range("dynamic_sparse_row_Matrix::gen_sum_");
 		size_t R, C;
 
-		col_iterator it;
 		for (size_t r = 1, rend=ir.size()+1; r != rend; ++r)
 		{
 			R = ir(r);
@@ -404,25 +401,23 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 				C = ic(c);
 				if (C == IDX(0))
 					continue;
-				it = row_[R - 1].find(C);
-				if (it == row_[R - 1].end())
-					row_[R - 1][C] = K(r, c);
-				else
-					it->second += K(r, c);
+				row_[R - 1]->value_at(C) += K(r, c);
 			}
 		}
 
 	}
 
-	template<typename	VAL, typename	IDX, class MP>
+	template<typename VAL, typename IDX, class MP, class ROW_T>
 	template<typename MAT>
-	inline void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::gen_sum_(const iSet& irc,  const MAT& K)
+	inline void dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::gen_sum_(const iSet& irc,  const MAT& K)
 	{
+		typedef typename MAT::value_t K_value_t;
+		static_assert(std::is_same<VAL, K_value_t>::value, "type mismatch");
 		index_t max_idx = irc.max();
 		if (max_idx> nrows() || max_idx> ncols())
-			throw std::out_of_range("dynamic_sparse_CSR_Matrix::gen_sum_");
+			throw std::out_of_range("dynamic_sparse_row_Matrix::gen_sum_");
 		
-		col_iterator it;
+		//col_iterator it;
 		for (index_t r = 1, end = irc.size() + 1; r != end; ++r)
 		{
 			index_t R = irc(r);
@@ -433,23 +428,19 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 				index_t C = irc(c);
 				if (C == IDX(0))
 					continue;
-				it = row_[R - 1].find(C);
-				if (it == row_[R - 1].end())
-					row_[R - 1][C] = K(r, c);
-				else
-					it->second += K(r, c);
+				row_[R - 1]->value_at(C) += K(r, c);
 			}
 		}
 	}
 
 
-	template<typename	VAL, typename	IDX, class MP>
-	inline void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::sym_sum_(const iSet& ir, const iSet& ic, const inserter_matrix_t& K)
+	template<typename	VAL, typename	IDX, class MP, class ROW_T>
+	inline void dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::sym_sum_(const iSet& ir, const iSet& ic, const inserter_matrix_t& K)
 	{
 		
 		index_t  R, C;
 		if (index_t(ir.max()) > nrows() || index_t(ic.max()) > ncols())
-			throw std::out_of_range("dynamic_sparse_CSR_Matrix::sym_sum_");
+			throw std::out_of_range("dynamic_sparse_row_Matrix::sym_sum_");
 
 		col_iterator it;
 		for (index_t r = 1, rend = (index_t)ir.size()+1; r != rend; ++r)
@@ -462,21 +453,18 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 				C = ic(c);
 				if (C == IDX(0) || C < R)
 					continue;
-				it = row_[R - 1].find(C);
-				if (it == row_[R - 1].end())
-					row_[R - 1][C] = K(r, c);
-				else
-					it->second += K(r, c);
+				row_[R - 1]->value_at(C) += K(r, c);
+				
 			}
 		}
 	}
 
-	template<typename	VAL, typename	IDX, class MP>
+	template<typename VAL, typename IDX, class MP, class ROW_T>
 	template<typename MAT>
-	inline void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::sym_sum_(const iSet& irc, const MAT& K)
+	inline void dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::sym_sum_(const iSet& irc, const MAT& K)
 	{
 		if (index_t(irc.max())> nrows())
-			throw std::out_of_range("dynamic_sparse_CSR_Matrix::sym_sum_");
+			throw std::out_of_range("dynamic_sparse_row_Matrix::sym_sum_");
 
 		index_t RR=0, CC = 0;
 		col_iterator it;
@@ -498,12 +486,7 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 				{
 					CC = R; RR = C;
 				}
-				it = row_[RR - 1].find(CC);
-				if (it == row_[RR - 1].end())
-					row_[RR - 1][CC] = K(r, c);
-				else
-					it->second += K(r, c);
-				
+				row_[RR - 1]->value_at(CC) += K(r, c);
 			}
 		}
 	}
@@ -511,15 +494,14 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 
 
 
-	template<typename	VAL, typename	IDX, class MP>
-	void	dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::fill(const value_t& val)
+	template<typename VAL, typename IDX, class MP, class ROW_T>
+	void	dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::fill(const value_t& val)
 	{
 		for (size_t i = 0; i != nrows(); ++i)
 		{
-			
-			col_iterator end = row_[i].end();
-			for (col_iterator beg = row_[i].begin(); beg != end; ++beg)
-				beg->second = val;
+			auto end = row_[i]->end();
+			for (col_iterator beg = row_[i]->begin(); beg != end; ++beg)
+				row_t::value(beg) = val;
 		}
 		
 	}
@@ -527,8 +509,8 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 
 
 
-	template<typename	VAL, typename	IDX, class MP>
-	void	dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::get_min_max_diag(index_t& idx_min, value_t& val_min, index_t& idx_max, value_t& val_max)const
+	template<typename VAL, typename IDX, class MP, class ROW_T>
+	void	dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::get_min_max_diag(index_t& idx_min, value_t& val_min, index_t& idx_max, value_t& val_max)const
 	{
 		idx_min=0;
 		idx_max=0;
@@ -539,12 +521,13 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 		bool found;
 		for(size_t i=0; i!=nrows(); ++i)
 		{
-			auto it=row_[i].find(i + 1);
+			const value_t * v=row_[i].find(i + 1);
 			
-			if (it == row_[i].end())
+			if (!v)
 				value = VAL(0);
 			else
-				value = it->second;
+				value = *v;
+
 			if(value > val_max)
 			{
 				val_max=value;
@@ -564,37 +547,29 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 	    ritorna il puntatore alla componente inserita  in caso di successo e 
 		lancia un'eccezione  std::out_of_range nel caso gli indici siano fuori campo, .
 	 */
-	template<typename	VAL, typename	IDX, class MP>
-	inline VAL& dynamic_sparse_CSR_Matrix<VAL, IDX, MP> ::put(index_t i, index_t j, const value_t& val)
+	template<typename VAL, typename IDX, class MP, class ROW_T>
+	inline VAL& dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T> ::put(index_t i, index_t j, const value_t& val)
 	{
 		if(!  test_subscripts(i,j))
 			throw std::out_of_range("DSC_Matrix<VAL,IDX,ALLOCATOR>::put");
 
 		if (IS::SYM && j < i)
 			std::swap(i, j);
-		return (row_[i-1][j]=val);
+		return (row_[i - 1]->value_at(j) = val);
 		
 	}
 
 	
-	template<typename	VAL, typename	IDX, class MP>
-	inline VAL& dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::sum(index_t i, index_t j, const value_t& val)
+	template<typename VAL, typename IDX, class MP, class ROW_T>
+	inline VAL& dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::sum(index_t i, index_t j, const value_t& val)
 	{
 		if(!  test_subscripts(i,j))
 			throw std::out_of_range("");
 		if (IS::SYM && j < i)
 			std::swap(i, j);
 
-		auto it = row_[i - 1].find(j);
-		if (it == row_[i - 1].end())
-		{
-			return row_[i - 1][j] = val;
-		}
-		else
-		{
-			it->second += val;
-			return	it->second;
-		}
+		return row_[i - 1]->value_at(j) += val;
+		
 	}
 	
 //}
@@ -605,34 +580,34 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 	// Informazioni sulla struttura della matrice
 	// In uscita NCR ha dimensione nrows e contiene  il numero di elementi diversi da zero di ogni riga 
 	// Ritorna il numero totale di elementi 
-	template<typename	VAL, typename	IDX, class MP>
-	inline size_t	dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::nonzeros(std::vector<index_t>& NCR)const
+	template<typename VAL, typename IDX, class MP, class ROW_T>
+	inline size_t	dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::nonzeros(std::vector<index_t>& NCR)const
 	{
 		NCR.clear();
 		NCR.reserve(nrows());
 		size_t s, counter=0;
 		for (auto r : row_)
 		{
-			 NCR.push_back( s=r.size() );
+			NCR.push_back(s = r->size());
 			 counter += s;
 		}
 		return counter;
 	}
 
 
-	template<typename	VAL, typename	IDX, class MP>
-	inline size_t	dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::nonzeros()const
+	template<typename VAL, typename IDX, class MP, class ROW_T>
+	inline size_t	dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::nonzeros()const
 	{
 		size_t counter=0;
 		for(auto r:row_)
-			 counter +=r.size();
+			counter += r->size();
 		return counter;
 	}
 
 
 
-	template<typename	VAL, typename	IDX, class MP>
-	void	dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::print(std::ostream& os)const
+	template<typename VAL, typename IDX, class MP, class ROW_T>
+	void	dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::print(std::ostream& os)const
 	{
 		std::streamsize width=os.width(0);
 		int count=1;
@@ -645,9 +620,9 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 		
 		for(index_t r=0; r!=nrows();++r)
 		{	
-			auto end = row_[r].end();
-			for (auto it = row_[r].begin(); it!=end; ++it)
-				os << "(" << std::setw(idx_width) << r + 1 << "," << std::setw(idx_width) << it->first << ")= " << std::setw(width) << it->second << std::endl;
+			auto end = row_[r]->end();
+			for (auto it = row_[r]->begin(); it != end; ++it)
+				os << "(" << std::setw(idx_width) << r + 1 << "," << std::setw(idx_width) << row_t::key(it) << ")= " << std::setw(width) << row_t::value(it) << std::endl;
 		}
 	}
 
@@ -659,8 +634,8 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 		///@return:  0 in caso di successo
 		///@return: -1 nel caso il file non possa essere aperto
 		///@return: -2 se si sono verificati errori in scrittura
-	template<typename	VAL, typename	IDX, class MP>
-	int	dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::fwrite(const std::string& fname)const
+	template<typename VAL, typename IDX, class MP, class ROW_T>
+	int	dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::fwrite(const std::string& fname)const
 	{
 		std::ofstream os(fname, std::ios_base::binary | std::ios_base::trunc);
 
@@ -675,7 +650,7 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 			row_pos[i + 1] = row_pos[i] + RC[i];
 
 		if ((row_pos[nrows()]-1) != nnz)
-			throw std::runtime_error("dynamic_sparse_CSR_Matrix::fwrite");
+			throw std::runtime_error("dynamic_sparse_row_Matrix::fwrite");
 
 		// Scrive un header con le dimensioni ed il tipo dei dati e della matrice
 		std::uint64_t header_[8] = {
@@ -701,11 +676,11 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 		std::vector<IDX>	i_buffer;
 		for( index_t r=0; r!=nrows();++r)
 		{
-			auto end = row_[r].end();
+			auto end = row_[r]->end();
 			i_buffer.clear();
-			i_buffer.reserve(row_[r].size());
-			for (auto it = row_[r].begin(); it != end; ++it)
-				i_buffer.push_back(it->first);
+			i_buffer.reserve(row_[r]->size());
+			for (auto it = row_[r]->begin(); it != end; ++it)
+				i_buffer.push_back(row_t::key(it));
 			if(i_buffer.size())
 			{
 				os.write( reinterpret_cast<const char*>(i_buffer.data()), sizeof(index_t)* i_buffer.size());
@@ -721,11 +696,11 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 		// scrivo i valori 
 		for( index_t r=0; r!=nrows();++r)
 		{
-			auto end = row_[r].end();
+			auto end = row_[r]->end();
 			v_buffer.clear();
-			v_buffer.reserve(row_[r].size());
-			for (auto it = row_[r].begin(); it != end; ++it)
-				v_buffer.push_back(it->second);
+			v_buffer.reserve(row_[r]->size());
+			for (auto it = row_[r]->begin(); it != end; ++it)
+				v_buffer.push_back(row_t::value(it));
 			if(v_buffer.size())
 			{
 				os.write(reinterpret_cast<const char*>(v_buffer.data()), sizeof(value_t)* v_buffer.size());
@@ -746,8 +721,8 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 		///@return: -2 se si sono verificati errori in scrittura
 		///@return: -3 se si sono verificati errori di incompatibilita' dei tipi
 		
-	template<typename	VAL, typename	IDX, class MP>
-	int	dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::fread(const std::string& fname)
+	template<typename VAL, typename IDX, class MP, class ROW_T>
+	int	dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::fread(const std::string& fname)
 	{
 
 		std::ifstream is(fname,std::ios_base::binary);
@@ -802,8 +777,9 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 			is.read(reinterpret_cast< char*>(&v_buff[0]), sizeof(value_t)*r_sz );
 			if(!is )
 				return -2;
-			for (size_t j = 0; j != r_sz; ++j)
-				row_[r][pi[j]]=v_buff[j];
+			row_[r]->put(pi, v_buff.data(), r_sz);
+			/*for (size_t j = 0; j != r_sz; ++j)
+				row_[r].value_at(pi[j]) = v_buff[j];*/
 			pi+=r_sz;
 		}
 		return 0;
@@ -812,10 +788,10 @@ void dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 
 
 	
-	template<typename	VAL, typename	IDX, class MP>
-	auto dynamic_sparse_CSR_Matrix<VAL, IDX, MP>::get_random_matrix(index_t nr, index_t nc, value_t sparsity, value_t mean, value_t range)->dynamic_sparse_CSR_Matrix
+	template<typename VAL, typename IDX, class MP, class ROW_T>
+	auto dynamic_sparse_row_Matrix<VAL, IDX, MP, ROW_T>::get_random_matrix(index_t nr, index_t nc, value_t sparsity, value_t mean, value_t range)->dynamic_sparse_row_Matrix
 	{
-		dynamic_sparse_CSR_Matrix A(nr, nc);
+		dynamic_sparse_row_Matrix A(nr, nc);
 		// Seed with a real random value, if available
 		std::random_device rd;
 		std::default_random_engine e1(rd());

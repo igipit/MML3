@@ -238,29 +238,34 @@ namespace MML3
 														bool trA = false, bool trB = false)
 		{
 			bool tmp = false;
-			const Matrix<T, M_PROP::GE, M_SHAPE::RE, MO>* pB = &B;
+			
 
-			if (&B == &C)
-			{
-				pB = new  Matrix<T, M_PROP::GE, M_SHAPE::RE, MO>(B);
-				tmp = true;
-			}
+			
 			Option::Transpose TRA = trA ? Option::Trans : Option::NoTrans;
 			Option::Transpose TRB = trB ? Option::Trans : Option::NoTrans;
 
 			// if needed resize C
 			size_t M = trA ? A.ncols() : A.nrows();
 			size_t N = trB ? B.nrows() : B.ncols();
-			C.resize(M, N);
+			
 			size_t K = trA ? A.nrows() : A.ncols();
 			size_t K1 = trB ? B.ncols() : B.nrows();
 			if (K1 != K)
 				throw std::runtime_error("Cbla::gemm size");
+			
+			
+			if (&B == &C)
+			{
+				Matrix<T, M_PROP::GE, M_SHAPE::RE, MO> Btmp(B);
+				C.resize(M, N);
+				Cblas<T>::gemm(A.CblasOrder(), TRA, TRB, M, N, K, T(1), A.data(), A.leading_dim(), Btmp.data(), Btmp.leading_dim(), T(0), C.data(), C.leading_dim());
+			}
+			else
+			{
+				C.resize(M, N);
+				Cblas<T>::gemm(A.CblasOrder(), TRA, TRB, M, N, K, T(1), A.data(), A.leading_dim(), B.data(), B.leading_dim(), T(0), C.data(), C.leading_dim());
+			}
 
-
-			Cblas<T>::gemm(A.CblasOrder(), TRA, TRB, M, N, K, T(1), A.data(), A.leading_dim(), pB->data(), pB->leading_dim(), T(0), C.data(), C.leading_dim());
-			if (tmp)
-				delete pB;
 			return C;
 		}
 

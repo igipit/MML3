@@ -20,7 +20,7 @@ namespace MML3
 		//-------------------------------------------
 		sparseMatrix()=default;
 		sparseMatrix(const sparseMatrix& )=default;
-		~sparseMatrix() = default;
+		virtual ~sparseMatrix() = default;
 
 		
 		

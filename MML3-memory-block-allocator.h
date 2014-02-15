@@ -27,7 +27,6 @@ public:
 		:block_size_(block_size)
 	{
 		pool_.push_front(new block_(block_size_));
-		// std::clog << "allocator contruction 1" << std::endl;
 	}
 	// Costruttore di default che utilizza blocchi con dimensione 100
 	MemoryBlockAllocator()
@@ -36,6 +35,8 @@ public:
 		pool_.push_front(new block_(block_size_));
 		// std::clog << "allocator contruction 2" << std::endl;
 	}
+
+	MemoryBlockAllocator(const MemoryBlockAllocator&) = delete;
 	
 	// Ritorna il numero di elementi in ciascun blocco
 	size_t block_size()const
@@ -47,12 +48,8 @@ public:
 	// Se il blocco corrente non esiste ancora lo crea.
 	T* allocate()
 	{
-		T* p;
-		if(pool_.size())
-			p=pool_.front()->get();
-		else
-			p=0; 
-
+		T* p=pool_.front()->get();
+	
 		if(!p)
 		{
 			pool_.push_front(new block_(block_size_));
@@ -63,18 +60,20 @@ public:
 
 	~MemoryBlockAllocator()
 	{
+		std::cout << "allocator destructor called" << std::endl;
 		clear();
 	}
 
 	// dealloca tutta la memoria allocata
 	void clear()
 	{
-		for( ; ! pool_.empty();	)
+		for (auto& b : pool_)
 		{
-			delete pool_.front();
-			pool_.pop_front();
+			b->clear();
+			b = nullptr;
 		}
-		// std::clog << "allocator clear " << std::endl;
+		pool_.clear();
+		
 	}
 
 	size_t	nblocks()const
@@ -86,13 +85,10 @@ private:
 
 	struct block_
 	{
-		block_()
-			:begin(0),end(0),pos(0)
-		{
-		}
+		block_() = default;
 		
 		block_(size_t size)
-			:begin(new T[size]),end(begin + size),pos(begin)
+			:begin(new T[size]),size_(size),pos(begin)
 		{
 		}
 		
@@ -100,26 +96,26 @@ private:
 		
 		void clear()
 		{
-			if(begin) 
-				delete [] begin; 
-			begin=end=pos=0;
+			delete [] begin; 
+			begin=pos=nullptr;
+			size_ = 0;
 		}
 
 		T*		get()
 		{
-			return pos!=end?pos++:0;
+			return (pos<begin+size_)?pos++:nullptr;
 		}
 		size_t	size()const
 		{
-			return (end-begin);
+			returnsize_;
 		}
 
-		T*		begin;
-		T*		end;
-		T*		pos;
+		T*		begin=nullptr;
+		size_t  size_=0;
+		T*		pos  =nullptr;
 	};
 
-	size_t				block_size_;	// dimensione del prossimo blocco 
+	size_t				block_size_=0;	// dimensione del blocco 
 	std::list<block_*>	pool_;			// contenitore dei blocchi
 
 }; // end class MemoryBlockAllocator

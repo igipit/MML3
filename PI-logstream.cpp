@@ -1,5 +1,4 @@
 
-
 #include"PI-logstream.h"
 
 namespace PI
@@ -12,12 +11,6 @@ namespace PI
 
 
 	
-	//std::ostream   log(& logbuf::I());
-	std::ostream&   log		=	logbuf::ostream();
-	std::wostream&  wlog = wlogbuf::ostream();
-
-
-	
 	
 
 
@@ -26,5 +19,6 @@ namespace PI
 		return "Warning[" + std::to_string(id) + "](" + msg + ") : "; }
 	std::string separator()	{ return "-----------------------------------------------------------\n"; }
 
-
+	std::string debug(const std::string& msg)	{ return "Debug [" + msg + "]\n"; }
+	
 }

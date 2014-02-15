@@ -1,7 +1,8 @@
+#pragma once
+
 #include<cstdint>
 #include<limits>
 #include<complex>
-#pragma once
 
 
 // #undef MML3_LAPACK  if you dont want lapack support
@@ -26,10 +27,10 @@
 #define MML3_BASE_INDEX_OFFSET 1
 
 
-
+#define MML3_TEST_INDEX_ON_ACCESS
 
 // when this macro is defined access of matrices by indexes is tested
-#if defined(_DEBUG)
+#if defined(_DEBUG) && !defined(MML3_TEST_INDEX_ON_ACCESS)
 	#define MML3_TEST_INDEX_ON_ACCESS
 #endif
 

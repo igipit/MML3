@@ -38,16 +38,12 @@ public:
 	// of type size_t to conform to the machine architecture (32 bit and 64 bit have consistent differences in addressable memory space)
 	// But, since sparse solvers (pardiso) expect the same type for column indexes and row positions  here i forced this constraint
 	// and thus the maximum nonzeros of a matrix equals std::numeric_limits<index_t>::max() that is 2'147'483'647 if an int32 is used
-	typedef std::valarray<index_t>						row_position_array_t;
+	typedef Vector<index_t>						row_position_array_t;
 
-	typedef std::valarray<index_t>						column_idx_array_t;
-	typedef std::valarray<value_t>						column_val_array_t;
+	typedef Vector<index_t>						column_idx_array_t;
+	typedef Vector<value_t>						column_val_array_t;
 
 	
-	//typedef std::vector<index_t>						idx_array_t;
-	//typedef std::vector<value_t>						val_array_t;
-	
-
 
 	
 	class col_iterator;
@@ -260,9 +256,9 @@ static_sparse_CSR_Matrix<VAL, IDX, MP>::static_sparse_CSR_Matrix(index_t nr, ind
 template<typename	VAL, typename	IDX, typename MP >
 void static_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 {
-	row_pos_.free();
-	col_idx_.free();
-	col_val_.free();
+	row_pos_.clear();
+	col_idx_.clear();
+	col_val_.clear();
 	nrows_=0;
 	ncols_=0;
 }
@@ -543,28 +539,28 @@ int	static_sparse_CSR_Matrix<VAL,IDX, MP>::fwrite(const std::string& fname)const
 	// Scrive un header con le dimensioni ed il tipo dei dati e della matrice
 	std::uint64_t header_[8] = 
 	{ 
-		nrows_,
-		ncols_,
-		nonzeros(),
-		is_symmetric() ? 1 : 0,
-		is_row_major() ? 1 : 0,
-		IS::UT ? 1 : 0,
-		std::uint64_t(type<index_t>::id()),
-		type<value_t>::id()
+		(std::uint64_t)nrows_,
+		(std::uint64_t)ncols_,
+		(std::uint64_t)nonzeros(),
+		(std::uint64_t)(is_symmetric() ? 1 : 0),
+		(std::uint64_t)(is_row_major() ? 1 : 0),
+		(std::uint64_t)(IS::UT ? 1 : 0),
+		(std::uint64_t)type<index_t>::id(),
+		(std::uint64_t)type<value_t>::id()
 	};
 	os.write(reinterpret_cast<const char*>(header_), sizeof(header_));
 	if (!os)
 		return -2;
 	// scrive il vettore posizione delle righe
-	os.write(reinterpret_cast<const char*>(&row_pos_[0]), sizeof(index_t)* row_pos_.size());
+	os.write(reinterpret_cast<const char*>(row_pos_.data()), sizeof(index_t)* row_pos_.size());
 	if (!os)
 		return -2;
 	// scrive il vettore degli indici di colonna 
-	os.write(reinterpret_cast<const char*>(&col_idx_[0]), sizeof(index_t)* col_idx_.size());
+	os.write(reinterpret_cast<const char*>(col_idx_.data()), sizeof(index_t)* col_idx_.size());
 	if (!os)
 		return -2;
 	// scrive il vettore dei valori
-	os.write(reinterpret_cast<const char*>(&col_val_[0]), sizeof(value_t)* col_val_.size());
+	os.write(reinterpret_cast<const char*>(col_val_.data()), sizeof(value_t)* col_val_.size());
 	if (!os)
 		return -2;
 	return 0;
@@ -580,15 +576,16 @@ int	static_sparse_CSR_Matrix<VAL,IDX, MP>::fread(const std::string& fname)
 	if (!is.is_open())
 		return -1;
 
-	std::uint64_t this_header_[8] = {
-		nrows(),
-		ncols(),
-		0,
-		is_symmetric() ? 1 : 0,
-		is_row_major() ? 1 : 0,
-		IS::UT ? 1 : 0,
-		std::uint64_t(type<index_t>::id()),
-		type<value_t>::id()
+	std::uint64_t this_header_[8] =
+	{
+		(std::uint64_t)0,
+		(std::uint64_t)0,
+		(std::uint64_t)0,
+		(std::uint64_t)(is_symmetric() ? 1 : 0),
+		(std::uint64_t)(is_row_major() ? 1 : 0),
+		(std::uint64_t)(IS::UT ? 1 : 0),
+		(std::uint64_t)type<index_t>::id(),
+		(std::uint64_t)type<value_t>::id()
 	};
 
 	std::uint64_t onfile_header_[8];
@@ -608,15 +605,15 @@ int	static_sparse_CSR_Matrix<VAL,IDX, MP>::fread(const std::string& fname)
 
 	resize(nr, nc, nnz);
 
-	is.read(reinterpret_cast< char*>(&row_pos_[0]), sizeof(index_t)* row_pos_.size());
+	is.read(reinterpret_cast< char*>(row_pos_.data()), sizeof(index_t)* row_pos_.size());
 	if (!is)
 		return -2;
 
-	is.read(reinterpret_cast< char*>(&col_idx_[0]), sizeof(index_t)* col_idx_.size());
+	is.read(reinterpret_cast< char*>(col_idx_.data()), sizeof(index_t)* col_idx_.size());
 	if (!is)
 		return -2;
 
-	is.read(reinterpret_cast< char*>(&col_val_[0]), sizeof(value_t)* col_val_.size());
+	is.read(reinterpret_cast< char*>(col_val_.data()), sizeof(value_t)* col_val_.size());
 	if (!is)
 		return -2;
 	return 0;

@@ -180,7 +180,7 @@ namespace MML3{
 				if (std::is_same<MO,M_ORD::COL>::value)
 				{
 					uplo_ = std::is_same<MS,M_SHAPE::LT>::value?'L':'U';
-					state_ = LAPACK<value_t >::pptrf(A.CblasOrder(), uplo_, A.nrows(), A.begin());
+					state_ = LAPACK<value_t >::pptrf(A.CblasOrder(), uplo_, A.nrows(), A.data());
 				}
 				// Row major formats require some workaround
 				else
@@ -189,13 +189,13 @@ namespace MML3{
 					if (std::is_same<MS,M_SHAPE::LT>::value)
 					{
 						uplo_ = 'L';
-						state_ = LAPACK<value_t >::pptrf(Option::ColMajor, 'U', A.nrows(), A.begin());
+						state_ = LAPACK<value_t >::pptrf(Option::ColMajor, 'U', A.nrows(), A.data());
 					}
 					// Row major packed UT have the same array structures of Col major LT
 					else
 					{
 						uplo_ = 'U';
-						state_ = LAPACK<value_t >::pptrf(Option::ColMajor, 'L', A.nrows(), A.begin());
+						state_ = LAPACK<value_t >::pptrf(Option::ColMajor, 'L', A.nrows(), A.data());
 					}
 				}
 			}
@@ -213,18 +213,18 @@ namespace MML3{
 			else
 			{
 				if (std::is_same<MS,M_SHAPE::RE>::value)
-					state_ = LAPACK<value_t>::potrs(pA_->CblasOrder(), uplo_, pA_->nrows(), X.ncols(), pA_->data(), pA_->leading_dim(), X.begin(), X.leading_dim());
+					state_ = LAPACK<value_t>::potrs(pA_->CblasOrder(), uplo_, pA_->nrows(), X.ncols(), pA_->data(), pA_->leading_dim(), X.data(), X.leading_dim());
 				else
 				{
 					if (std::is_same<MO,M_ORD::COL>::value)
-						state_ = LAPACK<value_t>::pptrs(pA_->CblasOrder(), uplo_, pA_->nrows(), X.ncols(), pA_->data(), X.begin(), X.leading_dim());
+						state_ = LAPACK<value_t>::pptrs(pA_->CblasOrder(), uplo_, pA_->nrows(), X.ncols(), pA_->data(), X.data(), X.leading_dim());
 					else
 					{
 						char tmp_uplo = std::is_same<M_SHAPE::LT,MS>::value?'U':'L';
 
 						// i make a transposed copy of the rhs
 						auto B = transpose(X);
-						state_ = LAPACK<value_t>::pptrs(Option::ColMajor, tmp_uplo, pA_->nrows(), X.ncols(), pA_->data(), B.begin(), B.ncols());
+						state_ = LAPACK<value_t>::pptrs(Option::ColMajor, tmp_uplo, pA_->nrows(), X.ncols(), pA_->data(), B.data(), B.ncols());
 						X = transpose(B);
 					}
 				}
@@ -233,51 +233,6 @@ namespace MML3{
 		}
 
 
-		/*
-
-		//  LLT solver specialized for Packed symmetric  matrices
-		template<typename T>
-		class LLT<Matrix<T, MAT_PROP::SYM>>
-		{
-			typedef Matrix<T, MAT_PROP::SYM>			sym_matrix_t;
-			typedef typename sym_matrix_t::property_t		property_t;
-			typedef typename sym_matrix_t::value_t 			value_t;
-			typedef typename LAPACK<value_t>::int_t		int_t;
-			typedef Matrix<T, MAT_PROP::GE>				rhs_matrix_t;
-		public:
-			LLT() = default;
-			int factorize(sym_matrix_t& A)
-			{
-				pA_ = &A;
-				// !!! con ROW_MAJOR ed 'L' non funziona e pertanto, in maniera equivalente, chiamo la routine
-				// con COL_MAJOR e 'U'
-				int info = LAPACK<T>::pptrf(MML3_LAPACK_COL_MAJOR, 'U', A.nrows(), A.begin());
-				return info;
-			}
-			int solve(rhs_matrix_t& X)
-			{
-				if (X.nrows() != pA_->nrows())
-					return std::numeric_limits<int>::min();
-				// pare che pptrs non voglia saperne di funzionare in modalità ROW_MAJOR, pertanto eseguo la trasposta del termine noto
-				X.set_transpose();
-				T* px = X.begin();
-				int info = LAPACK<T>::pptrs(MML3_LAPACK_COL_MAJOR, 'U', pA_->nrows(), X.nrows(), pA_->data(), px, X.leading_dimension());
-				X.set_transpose();
-				return info;
-			}
-		private:
-			sym_matrix_t*  pA_{};
-		};
-
-		// an LLT maker
-		template< typename T, typename MP>
-		auto  make_LLT(const Matrix<T, MP>&)->LLT< Matrix<T, MP>>
-		{
-			return LLT<Matrix<T, MP>>();
-		};
-		*/
-
-
-
+	
 	} // end namespace
 } // end namespace

@@ -7,7 +7,7 @@
 #undef min
 #endif
 
-#include<vector>
+#include"MML3-Vector.h"
 #include<initializer_list>
 #include<iomanip>
 #include"MML3-config.h"
@@ -17,8 +17,8 @@ namespace MML3{
 	class iSet
 	{
 	public:
-		typedef index_type  					index_t;
-		typedef std::vector<index_t>			vector_t;
+		typedef index_type  				index_t;
+		typedef Vector<index_t>				vector_t;
 		typedef vector_t::iterator 			iterator;
 		typedef vector_t::const_iterator	const_iterator;
 
@@ -32,7 +32,7 @@ namespace MML3{
 		// creates a sz-set of indexes initialized to  {p[0],p[1],...,p[sz-1]}
 		iSet(const T* p, index_t sz) : data_(p, p + sz){}
 		template<typename S>
-		iSet(std::initializer_list<S> s) : data_(s.begin(), s.end()){}
+		iSet(std::initializer_list<S> s) : data_(s.begin(), s.size()){}
 		//allows the construction of a iSet from any iterable class (e.g  std::containers)
 		template<typename A, typename B, template<typename, typename > class Container>
 		iSet(const Container<A, B>& c) : data_(c.begin(), c.end()){}

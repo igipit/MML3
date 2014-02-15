@@ -1,3 +1,11 @@
+#ifdef _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+#ifndef DBG_NEW    
+	#define DBG_NEW new ( _NORMAL_BLOCK , __FILE__ , __LINE__ )     
+	#define new DBG_NEW   
+#endif
+#endif
 
 #include"MML3-Vector.h"
 #include"MML3-Matrix.h"
@@ -139,7 +147,7 @@ namespace MML3
 	
 	PARDISO(	pardiso_pt.data(), &pardiso_maxfct, &pardiso_mnum, &pardiso_mtype, &pardiso_phase, 
 				&pardiso_n, pardiso_a, pardiso_ia, pardiso_ja, pardiso_perm.data(), &pardiso_nrhs, 
-				pardiso_iparam.data(), &pardiso_msglvl, B.begin(), X.begin(), &pardiso_error);
+				pardiso_iparam.data(), &pardiso_msglvl, B.data(), X.data(), &pardiso_error);
 
 	if (pardiso_error != 0) 
 	{

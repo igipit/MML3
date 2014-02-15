@@ -130,8 +130,12 @@ public:
 	ordered_single_linked_list(ALLOCATOR* alloc):head_(),allocator_(alloc){}
 	ordered_single_linked_list(ALLOCATOR* alloc, const ordered_single_linked_list& rhs);
 
-	// !!! Attenzione, la lista non dealloca mai la memoria allocata
-	~ordered_single_linked_list(){ }
+	// !!! Attenzione, la lista non alloca e non dealloca mai
+	~ordered_single_linked_list()
+	{
+		std::cout << "list destructor called" << std::endl;
+		allocator_ = nullptr;
+	}
 
 	// conta e ritorna il numero di elementi nella lista operatore O(1)
 	index_t	size()const{return head_.idx;}
