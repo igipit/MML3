@@ -104,9 +104,9 @@ namespace MML3
 		// note that diagonal block matrices must be passed by pointers
 		// e.g., if A1,A2,..., B,C are matrices then use
 		// diag_block_mat_product({&A1,&A2,...},B,C);
-		template<typename T, typename MP, typename MS, typename MO>
+		/*template<typename T, typename MP, typename MS, typename MO>
 		Matrix<T, MP, MS, MO>&		diag_block_mat_product(std::initializer_list< const Matrix<T, MP, MS, MO> *> A, const Matrix<T, MP, MS, MO>& B, Matrix<T, MP, MS, MO>& C);
-
+*/
 
 
 
@@ -354,57 +354,53 @@ namespace MML3
 
 
 
-		/*
-		template<typename T>
-		Matrix<T, typename M_PROP::GE>& diag_block_mat_product(std::initializer_list< const Matrix<T, M_PROP::GE> *> A, const Matrix<T, M_PROP::GE>& B, Matrix<T, M_PROP::GE>& C)
-		{
+		//
+		//template<typename T>
+		//Matrix<T, typename M_PROP::GE>& diag_block_mat_product(std::initializer_list< const Matrix<T, M_PROP::GE> *> A, const Matrix<T, M_PROP::GE>& B, Matrix<T, M_PROP::GE>& C)
+		//{
 
-			// test di conformita' delle dimensioni
-			size_t szA = 0;
-			for (auto a : A)
-			{
-				if (a->nrows() != a->ncols())
-					throw std::length_error("MML3::diag_block_mat_product: all diagonal blocks must be square matrices");
-				szA += a->nrows();
-			}
-			if (szA != B.nrows())
-				throw std::length_error("MML3::diag_block_mat_product: size of A is incompatible with the size of B");
+		//	// test di conformita' delle dimensioni
+		//	size_t szA = 0;
+		//	for (auto a : A)
+		//	{
+		//		if (a->nrows() != a->ncols())
+		//			throw std::length_error("MML3::diag_block_mat_product: all diagonal blocks must be square matrices");
+		//		szA += a->nrows();
+		//	}
+		//	if (szA != B.nrows())
+		//		throw std::length_error("MML3::diag_block_mat_product: size of A is incompatible with the size of B");
 
-			// prodotto
-			C.resize(szA, B.ncols()).fill(T(0));
+		//	// prodotto
+		//	C.resize(szA, B.ncols()).fill(T(0));
 
-			// indica il primo indice diagonale della sottomatrice in A ( meno 1)
-			size_t sz = 0;
-			size_t Bcols = B.ncols();
+		//	// indica il primo indice diagonale della sottomatrice in A ( meno 1)
+		//	size_t sz = 0;
+		//	size_t Bcols = B.ncols();
 
-			// ciclo sui blocchi diagonali di A
-			for (auto a : A)
-			{
-				const Matrix<T>& aa = *a; // alias per il blocco diagonale
-				size_t sz_aa = aa.ncols();
-				size_t I0 = sz;
-				for (size_t i = 0; i != sz_aa; ++i)
-				{
-					T*			C_I = C[I0 + i];
-					const T*	a_i = aa[i];
-					// cycles swapped for efficiency
-					for (size_t k = 0; k != sz_aa; ++k)
-					{
-						T a_ik = a_i[k];
-						const T* B_K = B[I0 + k];
-						for (size_t J = 0; J != Bcols; ++J)
-							C_I[J] += a_ik * B_K[J];
-					}
-				}
-				sz += sz_aa;
-			}
-			return C;
+		//	// ciclo sui blocchi diagonali di A
+		//	for (auto a : A)
+		//	{
+		//		const Matrix<T>& aa = *a; // alias per il blocco diagonale
+		//		size_t sz_aa = aa.ncols();
+		//		size_t I0 = sz;
+		//		for (size_t i = 0; i != sz_aa; ++i)
+		//		{
+		//			T*			C_I = C[I0 + i];
+		//			const T*	a_i = aa[i];
+		//			// cycles swapped for efficiency
+		//			for (size_t k = 0; k != sz_aa; ++k)
+		//			{
+		//				T a_ik = a_i[k];
+		//				const T* B_K = B[I0 + k];
+		//				for (size_t J = 0; J != Bcols; ++J)
+		//					C_I[J] += a_ik * B_K[J];
+		//			}
+		//		}
+		//		sz += sz_aa;
+		//	}
+		//	return C;
 
-		}
-
-
-		*/
-
+		//}
 
 
 

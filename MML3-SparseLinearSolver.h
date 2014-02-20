@@ -1,5 +1,5 @@
 #pragma once
-#include"MML3-static_CSR_Matrix.h"
+#include"MML3-CSR3_Matrix.h"
 namespace MML3
 {
 
@@ -13,13 +13,13 @@ namespace MML3
 	//      B:			soluzione del sistema lineare
 	//		log:		il log
 	//      RET_VAL		torna 0 in caso di successo, un codice di errore in caso contrario
-	int LinearSparseSolver(static_sparse_CSR_Matrix<double, std::int32_t, M_PROP::SYM>& A,
+	int LinearSparseSolver(CSR3_sym_matrix<double, std::int32_t>& A,
 		Matrix<double, M_PROP::GE, M_SHAPE::RE, M_ORD::COL>& B,
 		std::ostream& log,
 		int threads);
 
 
-	int LinearSparseSolver(static_sparse_CSR_Matrix<double, std::int32_t, M_PROP::GE>& A,
+	int LinearSparseSolver(CSR3_matrix<double, std::int32_t>& A,
 		Matrix<double, M_PROP::GE, M_SHAPE::RE, M_ORD::COL>& B,
 		std::ostream& log,
 		int threads);

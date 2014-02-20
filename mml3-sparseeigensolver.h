@@ -1,7 +1,7 @@
 #pragma once
 
 #include"MML3-Matrix.h"
-#include"MML3-static_CSR_Matrix.h"
+#include"MML3-CSR3_Matrix.h"
 #include"MML3-Vector.h"
 #include<map>
 #include<array>
@@ -28,8 +28,9 @@ namespace MML3
 	*           -3 se la matrice B non e' definita positiva
 	*           altri valori in caso di errori severi
 	*/
-	int SparseEigenSolver(static_sparse_CSR_Matrix<double, std::int32_t, M_PROP::SYM>& A,
-		static_sparse_CSR_Matrix<double, std::int32_t, M_PROP::SYM>& B,
+	int SparseEigenSolver(
+		CSR3_sym_matrix<double, std::int32_t>& A,
+		CSR3_sym_matrix<double, std::int32_t>& B,
 		Matrix<double, M_PROP::GE, M_SHAPE::RE, M_ORD::COL>& eigen_vector,
 		Vector<double>& eigen_value,
 		Vector<double>& eigen_error,

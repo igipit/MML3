@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _MML3_BASIC_SPARSE_MATRIX_H_
+#define _MML3_BASIC_SPARSE_MATRIX_H_
 #include"MML3-matrix.h"
 
 namespace MML3
@@ -6,7 +7,7 @@ namespace MML3
 
 	// Common base and interface of sparse matrices
 	template<typename VAL_TYPE, typename IDX_TYPE>
-	class sparseMatrix
+	class basic_sparse_matrix
 	{
 	public:
 
@@ -18,9 +19,9 @@ namespace MML3
 		//-------------------------------------------
 		// CTORs
 		//-------------------------------------------
-		sparseMatrix()=default;
-		sparseMatrix(const sparseMatrix& )=default;
-		virtual ~sparseMatrix() = default;
+		basic_sparse_matrix()=default;
+		basic_sparse_matrix(const basic_sparse_matrix& )=default;
+		virtual ~basic_sparse_matrix() = default;
 
 		
 		
@@ -132,7 +133,7 @@ namespace MML3
 
 
 	template<typename	VAL, typename	IDX>
-	std::ostream& operator<<(std::ostream& os, const sparseMatrix<VAL, IDX>& V)
+	std::ostream& operator<<(std::ostream& os, const basic_sparse_matrix<VAL, IDX>& V)
 	{
 		V.print(os);
 		return os;
@@ -142,3 +143,4 @@ namespace MML3
 
 
 } // end namespace
+#endif

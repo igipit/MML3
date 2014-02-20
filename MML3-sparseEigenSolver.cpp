@@ -12,15 +12,16 @@
 namespace MML3
 {
 	
-	int SparseEigenSolver(	static_sparse_CSR_Matrix<double, std::int32_t, M_PROP::SYM>& A,
-							static_sparse_CSR_Matrix<double, std::int32_t, M_PROP::SYM>& B,
-							Matrix<double, M_PROP::GE, M_SHAPE::RE, M_ORD::COL>& Z,
-							Vector<double>& L,
-							Vector<double>& eigen_error,
-							double eigenv_max,
-							int    toll_exp,
-							int    max_iter,
-							std::ostream& log)
+	int SparseEigenSolver(	
+		CSR3_sym_matrix<double, std::int32_t>& A,
+		CSR3_sym_matrix<double, std::int32_t>& B,
+		Matrix<double, M_PROP::GE, M_SHAPE::RE, M_ORD::COL>& Z,
+		Vector<double>& L,
+		Vector<double>& eigen_error,
+		double eigenv_max,
+		int    toll_exp,
+		int    max_iter,
+		std::ostream& log)
 {
 
 		typedef MML3_INT_TYPE  int_t;

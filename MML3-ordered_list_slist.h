@@ -1,22 +1,15 @@
 #ifndef _ORDERED_LIST_SLIST_H_
 #define _ORDERED_LIST_SLIST_H_
-
-#include"MML3-base_ordered_list.h"
-//#define BOOST_DISABLE_THREADS
-//#include "boost/pool/pool.hpp"
 #include<forward_list>
 namespace MML3
 {
 
 	template<typename KT, typename VT>
-	class ordered_list_slist :public base_ordered_list<KT, VT>
+	class ordered_list_slist
 	{
-		typedef base_ordered_list<KT, VT>						mybase;
-		
-	
 	public:
-		typedef typename mybase::value_t				value_t;
-		typedef typename mybase::key_t					key_t;
+		typedef VT										value_t;
+		typedef KT										key_t;
 		typedef std::pair<const KT, VT>					key_value_pair_t;
 		typedef std::allocator<key_value_pair_t>		allocator_t;
 		typedef std::forward_list<key_value_pair_t, allocator_t>
@@ -32,13 +25,10 @@ namespace MML3
 		~ordered_list_slist() = default;
 
 		//----------------------------------------------------------------
-		//OVERRIDE OF PURE VIRTUAL FUNCTIONS
-		virtual void destroy()
-		{ 
-			cont_.clear(); 
-		}
+		//FUNDAMENTAL METHODS
+		void destroy(){ cont_.clear(); }
 
-		virtual value_t& 	value_at(key_t key)
+		value_t& 	value_at(key_t key)
 		{
 			auto end = cont_.end();
 			auto it = cont_.begin();
@@ -65,7 +55,7 @@ namespace MML3
 			return it->second;
 		}
 
-		virtual value_t*	find(key_t key)
+		value_t*	find(key_t key)
 		{
 			for (auto it = cont_.begin(), end = cont_.end(); it != end; ++it)
 			if (it->first == key)
@@ -90,14 +80,38 @@ namespace MML3
 			return count;
 		}
 
+		iterator				begin(){ return cont_.begin(); }
+		const_iterator			begin()const{ return cont_.begin(); }
+		iterator				end(){ return cont_.end(); }
+		const_iterator			end()const{ return cont_.end(); }
+
+
+
+		//---------------------------------------------------------------------------------------------
+		// implementation based on fundamental methods
+		value_t &          put(const key_t& key, const value_t& value)	{
+			return value_at(key) = value;
+		}
+
+		value_t &          sum(const key_t& key, const value_t& value)	{
+			return value_at(key) += value;
+		}
+
+		template<typename VT1, typename IT1>
+		void				put(const IT1* key, const VT1* value, size_t sz)	{
+			for (size_t i = 0; i != sz; ++i)  value_at(key_t(key[i])) = value_t(value[i]);
+		}
+
+		template<typename VT1, typename IT1>
+		void				sum(const IT1* key, const VT1* value, size_t sz)	{
+			for (size_t i = 0; i != sz; ++i)  value_at(key_t(key[i])) += value_t(value[i]);
+		}
+
 
 		//-----------------------------------------------------
 		// ADDED FUNCTIONS
 
 
-		iterator				begin(){ return cont_.begin(); }
-		const_iterator			begin()const{ return cont_.begin(); }
-		const_iterator			end()const{ return cont_.end(); }
 		
 		static value_t&			value( iterator& it){ return it->second; }
 		static const value_t&	value(const const_iterator& it){ return it->second; }

@@ -20,8 +20,7 @@ namespace PI
 	std::string separator();
 	std::string debug(const std::string& msg);
 
-
-
+	
 
 	template<typename CH>
 	class basic_logbuf : public std::basic_streambuf<CH>

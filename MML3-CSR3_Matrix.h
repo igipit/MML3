@@ -1,11 +1,12 @@
-#pragma once
+#ifndef _MML3_CSR3_MATRIX_H_
+#define _MML3_CSR3_MATRIX_H_
 #include<cstdio>
 #include<iostream>
 #include<iomanip>
 #include<vector>
 #include<limits>
 #include"MML3-Matrix.h"
-#include"MML3-sparseMatrix.h"
+#include"MML3-basic_sparse_matrix.h"
 
 
 namespace MML3
@@ -15,13 +16,13 @@ namespace MML3
 	template<  typename	VALUE_TYPE,	/* il tipo delle componenti della matrice    */
                typename IDX_TYPE= int_t,    /* il tipo intero degli indici della matrice */
                class    MP=M_PROP::GE>
-	class static_sparse_CSR_Matrix;
+	class sparseCSR3Matrix;
 
-	template<typename T>
-	using static_sparse_matrix = static_sparse_CSR_Matrix<T, int_t, M_PROP::GE>;
+	template<typename T, typename IDX_TYPE = int_t>
+	using CSR3_matrix = sparseCSR3Matrix<T, IDX_TYPE, M_PROP::GE>;
 
-	template<typename T>
-	using static_sparse_sym_matrix = static_sparse_CSR_Matrix<T, int_t, M_PROP::SYM>;
+	template<typename T, typename IDX_TYPE = int_t>
+	using CSR3_sym_matrix = sparseCSR3Matrix<T, IDX_TYPE, M_PROP::SYM>;
 
 
 /** 
@@ -29,7 +30,7 @@ Static    Compressed Sparse Row Matrix (3 vector format)
 Static refers to the sparsity structure:  once the sparsity structure is formed it is not possible to add compoments 
 */
 template<typename VALUE_TYPE,typename IDX_TYPE,class MP>
-class static_sparse_CSR_Matrix : public sparseMatrix<VALUE_TYPE,IDX_TYPE>
+class sparseCSR3Matrix : public basic_sparse_matrix<VALUE_TYPE,IDX_TYPE>
 {
 public:
 	typedef VALUE_TYPE									value_t;
@@ -65,15 +66,15 @@ public:
 	//-------------------------------------------------------------------------
 	// COMMON INTERFACE
 	//-------------------------------------------------------------------------
-	typedef sparseMatrix<VALUE_TYPE, IDX_TYPE>			base_matrix_t;
+	typedef basic_sparse_matrix<VALUE_TYPE, IDX_TYPE>			base_matrix_t;
 	typedef iSet										iset_t;
 	typedef base_matrix_t::inserter_matrix_t			inserter_matrix_t;
 	typedef base_matrix_t::inserter_sym_matrix_t		inserter_sym_matrix_t;
 
 	
-	static_sparse_CSR_Matrix() = default;
-	static_sparse_CSR_Matrix(const static_sparse_CSR_Matrix& lhs) = default;
-	~static_sparse_CSR_Matrix(){ destroy(); }
+	sparseCSR3Matrix() = default;
+	sparseCSR3Matrix(const sparseCSR3Matrix& lhs) = default;
+	~sparseCSR3Matrix(){ destroy(); }
 
 	void				destroy();
 	index_t				nrows()const{ return nrows_; }
@@ -105,10 +106,10 @@ public:
 	//-------------------------------------------------------------------------
 
 	/// costruttore che alloca le risorse necessarie
-	static_sparse_CSR_Matrix(index_t nr, index_t nc, size_t nnz);
+	sparseCSR3Matrix(index_t nr, index_t nc, size_t nnz);
 	/// ridimensiona la matrice perdendo contenuto e struttura
 	void resize(index_t nr, index_t nc, size_t nnz);
-	void swap(static_sparse_CSR_Matrix& lhs);
+	void swap(sparseCSR3Matrix& lhs);
 	
 	///------------------------------------------------------ 
 	/// per accedere dall'esterno direttamante ai 3 vettori
@@ -230,7 +231,7 @@ private:
 
 
 template<typename	VAL, typename	IDX, typename MP >
-inline bool static_sparse_CSR_Matrix<VAL, IDX, MP>::test_subscripts(index_t r, index_t c)const
+inline bool sparseCSR3Matrix<VAL, IDX, MP>::test_subscripts(index_t r, index_t c)const
 {
 	if ((r > nrows_ || r<1) || (c > ncols_ || c<1))
 		return false;
@@ -241,7 +242,7 @@ inline bool static_sparse_CSR_Matrix<VAL, IDX, MP>::test_subscripts(index_t r, i
 
 /// costruttore che alloca le risorse necessarie
 template<typename	VAL, typename	IDX, typename MP >
-static_sparse_CSR_Matrix<VAL, IDX, MP>::static_sparse_CSR_Matrix(index_t nr, index_t nc, size_t nnz) :
+sparseCSR3Matrix<VAL, IDX, MP>::sparseCSR3Matrix(index_t nr, index_t nc, size_t nnz) :
 		nrows_(nr),
 		ncols_(nc),
 		row_pos_(nr+1),
@@ -254,7 +255,7 @@ static_sparse_CSR_Matrix<VAL, IDX, MP>::static_sparse_CSR_Matrix(index_t nr, ind
 
 	/// deallocates resources
 template<typename	VAL, typename	IDX, typename MP >
-void static_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
+void sparseCSR3Matrix<VAL, IDX, MP>::destroy()
 {
 	row_pos_.clear();
 	col_idx_.clear();
@@ -269,7 +270,7 @@ void static_sparse_CSR_Matrix<VAL, IDX, MP>::destroy()
 /// essendo gli indici di colonna ordinati (per ogni riga) si pu� fare una ricerca piu' efficente, perlomeno quando gli 
 /// elementi sono molti. Probabilmente con pochi elementi per riga la ricerca sequanziale e' la piu' veloce
 template<typename	VAL, typename	IDX, typename MP >
-size_t static_sparse_CSR_Matrix<VAL, IDX, MP>::find_position_1b_(index_t r, index_t c)const
+size_t sparseCSR3Matrix<VAL, IDX, MP>::find_position_1b_(index_t r, index_t c)const
 {
 	// does not test indexes correctness
 	size_t pos		= row_pos_[r - 1] - 1;
@@ -284,15 +285,15 @@ size_t static_sparse_CSR_Matrix<VAL, IDX, MP>::find_position_1b_(index_t r, inde
 
 /// ridimensiona la matrice perdendo contenuto e struttura
 template<typename	VAL, typename	IDX, typename MP >
-void static_sparse_CSR_Matrix<VAL, IDX, MP>::resize(index_t nr, index_t nc, size_t nnz)
+void sparseCSR3Matrix<VAL, IDX, MP>::resize(index_t nr, index_t nc, size_t nnz)
 	{
-		static_sparse_CSR_Matrix	tmp(nr,nc,nnz);
+		sparseCSR3Matrix	tmp(nr,nc,nnz);
 		swap(tmp);
 	}
 
 
 template<typename	VAL, typename	IDX, typename MP >
-void static_sparse_CSR_Matrix<VAL, IDX, MP>::swap(static_sparse_CSR_Matrix& rhs)
+void sparseCSR3Matrix<VAL, IDX, MP>::swap(sparseCSR3Matrix& rhs)
 {
 		std::swap(nrows_,rhs.nrows_);
 		std::swap(ncols_,rhs.ncols_);
@@ -305,7 +306,7 @@ void static_sparse_CSR_Matrix<VAL, IDX, MP>::swap(static_sparse_CSR_Matrix& rhs)
 
 /// Ritorna il puntatore alla componente in posizione (i,j) se questa esiste, nullptr altrimenti
 template<typename	VAL, typename	IDX, typename MP >
-const VAL*  static_sparse_CSR_Matrix<VAL, IDX, MP>::get_p(index_t i, index_t j)const
+const VAL*  sparseCSR3Matrix<VAL, IDX, MP>::get_p(index_t i, index_t j)const
 {
 	if (!test_subscripts(i, j))
 		throw std::out_of_range("static_sparse_CR_Matrix<VAL,IDX>::get()const");
@@ -319,7 +320,7 @@ const VAL*  static_sparse_CSR_Matrix<VAL, IDX, MP>::get_p(index_t i, index_t j)c
 
 /// Ritorna il puntatore alla componente in posizione (i,j) se questa esiste, nullptr altrimenti
 template<typename	VAL, typename	IDX, typename MP >
-VAL*  static_sparse_CSR_Matrix<VAL, IDX, MP>::get_p(index_t i, index_t j)
+VAL*  sparseCSR3Matrix<VAL, IDX, MP>::get_p(index_t i, index_t j)
 {
 	if (!test_subscripts(i, j))
 		throw std::out_of_range("static_sparse_CR_Matrix<VAL,IDX>::get()const");
@@ -401,25 +402,25 @@ void	static_sparse_CR_Matrix<MT,VAL,IDX>::get_min_max(index_t& row_idx_min, inde
 
 	
 template<typename	VAL, typename	IDX, typename MP>
-auto static_sparse_CSR_Matrix<VAL, IDX,MP>::put(index_t R, index_t C, const value_t& val)->value_t&
+auto sparseCSR3Matrix<VAL, IDX,MP>::put(index_t R, index_t C, const value_t& val)->value_t&
 {
 	value_t* p=get_p(R, C);
 	if(p)
 		*p=val;
 	else
-		throw std::out_of_range("static_sparse_CSR_Matrix<VAL,IDX>::put():2");
+		throw std::out_of_range("sparseCSR3Matrix<VAL,IDX>::put():2");
 	return *p;
 }
 
 
 template<typename	VAL, typename	IDX, typename MP >
-auto	static_sparse_CSR_Matrix<VAL, IDX,MP>::sum(index_t R, index_t C, const value_t& val)->value_t& 
+auto	sparseCSR3Matrix<VAL, IDX,MP>::sum(index_t R, index_t C, const value_t& val)->value_t& 
 {
 	value_t* p = get_p(R, C);
 	if (p)
 		*p += val;
 	else
-		throw std::out_of_range("static_sparse_CSR_Matrix<VAL,IDX>::sum():2");
+		throw std::out_of_range("sparseCSR3Matrix<VAL,IDX>::sum():2");
 	return *p;
 }
 
@@ -432,10 +433,10 @@ auto	static_sparse_CSR_Matrix<VAL, IDX,MP>::sum(index_t R, index_t C, const valu
 
 template<typename	VAL, typename	IDX, typename MP >
 template<typename MAT>
-void static_sparse_CSR_Matrix< VAL, IDX, MP>::put_(const iSet& ir, const iSet& ic, const MAT& K)
+void sparseCSR3Matrix< VAL, IDX, MP>::put_(const iSet& ir, const iSet& ic, const MAT& K)
 {
 	if (index_t(ir.max()) > nrows() || index_t(ic.max())>ncols())
-		throw std::out_of_range("static_sparse_CSR_Matrix<VAL,IDX>::put_():6");
+		throw std::out_of_range("sparseCSR3Matrix<VAL,IDX>::put_():6");
 	index_t rsz = (index_t)ir.size(),
 		csz = (index_t)ic.size();
 
@@ -454,7 +455,7 @@ void static_sparse_CSR_Matrix< VAL, IDX, MP>::put_(const iSet& ir, const iSet& i
 			if (v)
 				*v = K(r, c);
 			else
-				throw std::out_of_range("static_sparse_CSR_Matrix<VAL,IDX>::put_():6");
+				throw std::out_of_range("sparseCSR3Matrix<VAL,IDX>::put_():6");
 		}
 	}
 }
@@ -469,10 +470,10 @@ void static_sparse_CSR_Matrix< VAL, IDX, MP>::put_(const iSet& ir, const iSet& i
 
 template<typename	VAL, typename	IDX, typename MP >
 template<typename MAT>
-void static_sparse_CSR_Matrix< VAL, IDX, MP>::sum_(const iSet& ir, const iSet& ic, const MAT& K)
+void sparseCSR3Matrix< VAL, IDX, MP>::sum_(const iSet& ir, const iSet& ic, const MAT& K)
 {
 	if (index_t(ir.max()) > nrows() || index_t(ic.max())>ncols())
-		throw std::out_of_range("static_sparse_CSR_Matrix<VAL,IDX>::sum():6");
+		throw std::out_of_range("sparseCSR3Matrix<VAL,IDX>::sum():6");
 	index_t rsz = (index_t)ir.size(),
 		csz = (index_t)ic.size();
 	for (index_t r = 1; r <= rsz; ++r)
@@ -490,7 +491,7 @@ void static_sparse_CSR_Matrix< VAL, IDX, MP>::sum_(const iSet& ir, const iSet& i
 			if (v)
 				*v += K(r, c);
 			else
-				throw std::out_of_range("static_sparse_CSR_Matrix<VAL,IDX>::sum():6");
+				throw std::out_of_range("sparseCSR3Matrix<VAL,IDX>::sum():6");
 		}
 	}
 }
@@ -500,10 +501,10 @@ void static_sparse_CSR_Matrix< VAL, IDX, MP>::sum_(const iSet& ir, const iSet& i
 
 template<typename	VAL, typename	IDX, typename MP >
 template<typename MAT>
-void	static_sparse_CSR_Matrix<VAL, IDX, MP>::sum_(const iSet& irc, const MAT& K)
+void	sparseCSR3Matrix<VAL, IDX, MP>::sum_(const iSet& irc, const MAT& K)
 {
 	if (index_t(irc.max())> nrows())
-		throw std::out_of_range("static_sparse_CSR_Matrix::gen_sum_");
+		throw std::out_of_range("sparseCSR3Matrix::gen_sum_");
 	for (index_t r = 1, iend = irc.size() + 1; r != iend; ++r)
 	{
 		index_t R = irc(r);
@@ -518,7 +519,7 @@ void	static_sparse_CSR_Matrix<VAL, IDX, MP>::sum_(const iSet& irc, const MAT& K)
 			if (v)
 				*v += K(r, c);
 			else
-				throw std::out_of_range("static_sparse_CSR_Matrix<VAL,IDX>::sum_():7");
+				throw std::out_of_range("sparseCSR3Matrix<VAL,IDX>::sum_():7");
 		}
 	}
 }
@@ -531,7 +532,7 @@ void	static_sparse_CSR_Matrix<VAL, IDX, MP>::sum_(const iSet& irc, const MAT& K)
 
 
 template< typename VAL, typename	IDX, typename MP>
-int	static_sparse_CSR_Matrix<VAL,IDX, MP>::fwrite(const std::string& fname)const
+int	sparseCSR3Matrix<VAL,IDX, MP>::fwrite(const std::string& fname)const
 {
 	std::ofstream os(fname, std::ios_base::binary | std::ios_base::trunc);
 	if (!os)
@@ -570,7 +571,7 @@ int	static_sparse_CSR_Matrix<VAL,IDX, MP>::fwrite(const std::string& fname)const
 
 
 template< typename VAL, typename	IDX, typename MP>
-int	static_sparse_CSR_Matrix<VAL,IDX, MP>::fread(const std::string& fname)
+int	sparseCSR3Matrix<VAL,IDX, MP>::fread(const std::string& fname)
 {
 	std::ifstream is(fname, std::ios_base::binary);
 	if (!is.is_open())
@@ -626,7 +627,7 @@ int	static_sparse_CSR_Matrix<VAL,IDX, MP>::fread(const std::string& fname)
 
 
 template<typename VAL, typename	IDX, typename MP>
-void	static_sparse_CSR_Matrix<VAL,IDX,MP>::print(std::ostream& os)const
+void	sparseCSR3Matrix<VAL,IDX,MP>::print(std::ostream& os)const
 	{
 
 		std::streamsize width=os.width(0);
@@ -650,7 +651,7 @@ void	static_sparse_CSR_Matrix<VAL,IDX,MP>::print(std::ostream& os)const
 
 
 template<typename VAL, typename	IDX, typename MP>
-void	static_sparse_CSR_Matrix< VAL, IDX, MP>::product(const value_t* vecB, index_t szB, value_t* vecC, index_t szC)const
+void	sparseCSR3Matrix< VAL, IDX, MP>::product(const value_t* vecB, index_t szB, value_t* vecC, index_t szC)const
 {
 	index_t NR = nrows(), NC = ncols();
 	if (NC != szB || NR!= szC)
@@ -728,3 +729,4 @@ void product(const static_sparse_CR_Matrix<MT, VAL,IDX>& MAT, const Vector<VAL>&
 
 
 } // end namespace MML
+#endif

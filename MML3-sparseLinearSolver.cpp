@@ -20,7 +20,7 @@ namespace MML3
 {
 
 	// solutore per matrici  simmetriche sparse statiche
-	int LinearSparseSolver( static_sparse_CSR_Matrix<double, std::int32_t, M_PROP::SYM>& A,
+	int LinearSparseSolver( CSR3_sym_matrix<double, std::int32_t>& A,
 							Matrix<double, M_PROP::GE, M_SHAPE::RE, M_ORD::COL>& B,
 							std::ostream& log,
 							int threads)

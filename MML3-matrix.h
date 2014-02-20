@@ -221,10 +221,10 @@ namespace MML3
 
 		static const std::string	name();
 
-		index_t		leading_dim()const										{return IS::RowMajor?nc_:nr_;}
+		index_t					leading_dim()const							{return IS::RowMajor?nc_:nr_;}
 		static Option::Order	CblasOrder()								{return Option::Order(MO::ID); }
 		// tells where the components of a symmetric matrix are stored (Lower or Upper triangle)
-		static Option::UpLo	CblasSymUpLo()									{return Option::UpLo(MS::SYMM_ID); }
+		static Option::UpLo		CblasSymUpLo()									{return Option::UpLo(MS::SYMM_ID); }
 
 		//  REctangualr GEneral matrices can have any dimension. Other combinations must be square
 		bool		test_size(index_type nr, index_type nc)const			{ return  (IS::RE && IS::GE) ? true : (nr == nc); }
@@ -334,6 +334,7 @@ namespace MML3
 		//returns a copy of the Matrix transformed by func
 		Matrix			apply(T func(T)) const							{ Matrix tmp(*this); return tmp.transform(func); }
 		Matrix&			transform(T func(T))							{ for (auto& v : data_)v = func(v);return *this;}
+		Matrix&			set_diagonal(index_type n, value_t val)			{ resize(n, n).fill(0); for (index_t i = 0; i != n; ++i) at_(i, i) = val; return *this; }
 
 		//------------------------------------//
 		//  GENERATORS                        //

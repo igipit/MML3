@@ -1,3 +1,6 @@
+#ifndef _MML3_DIAGONAL_BLOCK_MATRIX_H_
+#define _MML3_DIAGONAL_BLOCK_MATRIX_H_
+
 #include"MML3-Matrix.h"
 #include<vector>
 
@@ -241,3 +244,5 @@ namespace MML3
 
 
 }
+
+#endif

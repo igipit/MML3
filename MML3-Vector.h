@@ -49,26 +49,34 @@ namespace MML3
 
 		Vector(const std::initializer_list<T>& s)				:base_(s){}
 		~Vector()= default;
+
+
+		Vector& resize(size_t sz){ base_::resize(sz); return *this;}
 		// cast operator to std::vector<T>
 		operator base_(){ return *this; }
 		Vector&		swap(Vector& o)								{ base_::swap(o); return *this; }
 		Vector&		operator=(const Vector& o)					{ base_::operator=(o); return *this; }
 		Vector&		operator=(T val)							{ return fill(val); }
 		Vector&		operator=(const std::initializer_list<T>& s){ base_::operator=(s); return *this; }
-		Vector&		assign(const T* o, size_t sz)				{ resize(sz); std::copy(o, o + sz, data()); return *this; }
+		Vector&		assign(const T* o, size_t sz)				{ 
+			resize(sz); 
+			if(sz)
+				std::copy(o, o + sz, data()); 
+			return *this; 
+		}
 		
-		//void		free()										{ clear(); }
+		
 		Vector&		fill(T val)									{ std::fill_n(data(),size(), val); return *this; }
 
 #ifdef MML3_TEST_INDEX_ON_ACCESS
 		T&		operator[](size_t i)				{ return base_::at(i);}
-		const T&	operator[](size_t i)const			{ return base_::at(i); }
+		const T&	operator[](size_t i)const		{ return base_::at(i); }
 		// ACCESSORS 1-BASED
 		T&		operator()(size_t i)				{ return base_::at(i - Base_); }
-		const T&	operator()(size_t i)const			{ return base_::at(i - Base_); }
+		const T&	operator()(size_t i)const		{ return base_::at(i - Base_); }
 #else
 		T&		operator()(size_t i)				{ return base_::operator[](i - Base_); }
-		const T&	operator()(size_t i)const			{ return base_::operator[](i - Base_); }
+		const T&	operator()(size_t i)const		{ return base_::operator[](i - Base_); }
 #endif
 
 		// VALUE VECTOR OPERATORS
