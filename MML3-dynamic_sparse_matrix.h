@@ -946,15 +946,13 @@ template<typename VAL, typename IDX, class MP, class ROW_T>
 			index_t R = (index_t)ir[i];
 			if (!R)
 				continue;
-			for (size_t j = (symut?i:0); j != ic_sz; ++j)
+			for (size_t j = 0; j != ic_sz; ++j)
 			{
 					index_t C = ic[j];
 					if (!C)
 						continue;
 					if (C>=R)
 						put(R, C, K[i*ic_sz + j]);
-					else
-						put(C, R, K[i*ic_sz + j]);
 			}
 
 		}
@@ -970,15 +968,13 @@ template<typename VAL, typename IDX, class MP, class ROW_T>
 			index_t R = (index_t)ir[i];
 			if (!R)
 				continue;
-			for (size_t j = (symut ? i : 0); j != ic_sz; ++j)
+			for (size_t j = 0; j != ic_sz; ++j)
 			{
 				index_t C = ic[j];
 				if (!C)
 					continue;
 				if (C>=R)
 					sum(R, C, K[i*ic_sz + j]);
-				else
-					sum(C, R, K[i*ic_sz + j]);
 			}
 
 		}

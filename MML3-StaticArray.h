@@ -87,8 +87,8 @@ struct array_data_<T, M, 1>:public base_static_array_<T, M, 1>
 
 	// second index ignored; provided for functions that access vectors as 
 	// 1 column arrays
-	T&			operator()(size_t i, size_t){ return p_[i - Base_]; }
-	const T&	operator()(size_t i, size_t)const{ return p_[i - Base_]; }
+	T&			operator()(size_t i, size_t j)	{	if (j!=1)  throw std::runtime_error("array_data_<T, M, 1>::operator(), bad index ");	return p_[i - Base_]; }
+	const T&	operator()(size_t i, size_t)const{ if (j != 1) throw std::runtime_error("array_data_<T, M, 1>::operator(), bad index "); return p_[i - Base_]; }
 	T&			at_0b(size_t i, size_t){ return p_[i]; }
 	const T&	at_0b(size_t i, size_t)const { return p_[i]; }
 };

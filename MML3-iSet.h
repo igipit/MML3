@@ -37,6 +37,12 @@ namespace MML3{
 		template<typename A, typename B, template<typename, typename > class Container>
 		iSet(const Container<A, B>& c) : data_(c.begin(), c.end()){}
 
+
+		~iSet()
+		{
+			data_.clear();
+		}
+
 		iSet& 				operator=(const iSet& ois) = default;
 		iSet& 				operator=(iSet&& ois)			{ data_ = std::move(ois.data_);	return *this; }
 		iSet& 				add(index_t i)					{ data_.push_back(i); return *this; }
@@ -68,7 +74,6 @@ namespace MML3{
 	};
 
 	inline std::ostream& operator<<(std::ostream& os, const iSet& V) { V.print(os);	return os; }
-
 
 
 

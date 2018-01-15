@@ -6,6 +6,7 @@
 #include"MML3-dynamic_sparse_matrix.h"
 #include"MML3-CSR3_Matrix.h"
 #include"MML3-RangeT.h"
+#include"PI-StringStringSet.h"
 #include<iostream>
 
 using namespace MML3;
@@ -18,6 +19,23 @@ using namespace MML3;
 		typedef CSR3_sym_matrix<double, int>		   ssMatrix;
 		
 		
+
+
+
+
+		PI::string_string_set<char> ss_set;
+
+		ss_set.insert("pippo", "1");
+		ss_set.insert("Pippo", "2");
+		ss_set.insert("PIPPO", "3");
+		for (auto it = ss_set.begin(); it != ss_set.end(); ++it)
+			std::cout << it->first << "\t" << it->second << std::endl;
+
+
+
+
+
+
 		try
 		{
 			int sz = 4000;

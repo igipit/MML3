@@ -1,4 +1,6 @@
-#pragma once
+#ifndef _MML3_MATRIX_ALGORITHMS_H_
+#define _MML3_MATRIX_ALGORITHMS_H_
+
 #include"MML3-config.h"
 #include"MML3-Matrix.h"
 #include"MML3-Vector.h"
@@ -407,3 +409,4 @@ namespace MML3
 
 	}// end namespace ALG
 } // end namespace MML3
+#endif

@@ -8,7 +8,12 @@
 #include<fstream>
 
 
-#define SOURCE_INFO "File:" << __FILE__ << "\tLine:" << __LINE__ << "\t"
+//#define SOURCE_INFO0 "File:"
+//#define SOURCE_INFO1 SOURCE_INFO0 ## __FILE__
+//#define SOURCE_INFO2 SOURCE_INFO1 ##"\tLine:"
+//#define SOURCE_INFO3 SOURCE_INFO2 ##__LINE__
+//#define SOURCE_INFO  SOURCE_INFO3 ##"\t"
+
 //#define DEBUG_INFO "[DEBUG] File:" << __FILE__ << "\tLine:" << __LINE__ << "\t" << std::endl
 #define PRINT_DEBUG_INFO std::cerr << "[DEBUG] File:" << __FILE__ << "\tLine:" << __LINE__ << "\t" << std::endl;
 namespace PI

@@ -1,5 +1,6 @@
 #pragma once
 #include<cmath>
+#include"MML3-array-algorithms.h"
 
 namespace MML3
 { 
@@ -11,8 +12,11 @@ namespace  Math
 	// costanti caratteristiche 
 	namespace Const
 	{
-		static double Pi = 3.141592653589793238462;
-		static double E = 2.718281828459045235360;
+		static double Pi		= 3.141592653589793238462;
+		static double half_Pi	= Pi / 2;
+		static double two_Pi	= 2*Pi;
+
+		static double E			= 2.718281828459045235360;
 	}
 
 	using namespace Const;
@@ -27,8 +31,8 @@ namespace  Math
 		inline double heavyside(double x, double x0=0.0){return x >= x0 ? 1.0 : 0.;}
 
 		// conversione di angoli da gradi a radianti e viceversa
-		inline  double deg2rad(double deg){	return deg/180. * Pi;	}
-		inline  double rad2deg(double rad){ return rad/Pi * 180.;}
+		inline  double deg2rad(double deg){	return deg/180. * Const::Pi;	}
+		inline  double rad2deg(double rad){ return rad/Const::Pi * 180.;}
 
 		/// delta di Kronecker
 		inline  double delta(int a, int b){return (a==b?1.:0.);}	
@@ -44,32 +48,10 @@ namespace  Math
 			return double(D[a-1][b-1][c-1]);
 		}	
 
-		// prodotto scalare tra vettori
-		inline double scalar_product(const double a[], const double b[], size_t sz)
-		{
-			double sum = 0;
-			for (size_t i = 0; i != sz; ++i)
-				sum += a[i] * b[i];
-			return sum;
-		}
-		// norma euclidea di un vettore
-		inline double norm2(const double a[], size_t sz)
-		{
-			return sqrt(scalar_product(a,a,sz));
-		}
-                
-                
-               
-                
-                
-		// prodotto vettore 3D
-                template<typename T>
-		inline void vector_product_3D(const T a[], const T b[], T c[])
-		{
-			c[0] = a[1] * b[2] - a[2] * b[1];
-			c[1] = a[2] * b[0] - a[0] * b[2];
-			c[2] = a[0] * b[1] - a[1] * b[0];
-		}
+		
+			
+
+		
 
 		///////////////////////////////////////////////////////////////////////////////////////	
 		// algoritmi 
@@ -80,30 +62,55 @@ namespace  Math
         a x^2 + b x + c=0
         Le radici sono $\frac{ - b +- \sqrt{b^2 - 4 a c} }{2 a}
         Se le radici sono reali (distine o coincidenti) x1 ed x2 in uscita
-        contengono le radici.
+        contengono le radici e la funzione torna 0.0.
         Se le radici sono complesse la funzione ritorna la parte immaginaria
         e le radici sono
         x1 + j retval,    x2 - j retval
-        dove retval indica il valore di ritorno della funzione.
-		L'utente pu� discriminare tra i due casi in base al valore di ritorno della funzione,
-		se questop � 0.0 allora le radici sono reali
+        dove retval >0  indica il valore di ritorno della funzione.
+		L'utente puo' discriminare tra i due casi in base al valore di ritorno della funzione,
+		se questo e' 0.0 allora le radici sono reali
+		Se retval <0 significa che il coefficiente dominante  a è nullo 
         */
 		inline double poly2_root(double a, double b, double c, double& x1, double& x2)
 		{
+			if (a == 0)
+				return -1.0;
 
-			double Delta=b*b - 4. * a * c;
-            
-            if(Delta < 0.)
-            {
-                x1=x2=- b / (2.0 * a);
-            	return sqrt(-Delta)/(2.0 * a);
-            }
-            
-			Delta=sqrt(Delta);
-			x1 = ( -b - Delta)/( 2. * a);
-			x2 = ( -b + Delta)/( 2. * a);
-			return 0.0;
+			// Versione numerica  che riduce le cancellazioni nei casi critici
+			double  d, e,xi;
+			x1 = x2 = xi = 0.0;
+
+			// Compute discriminant avoiding overflow
+			double B_2 = b / 2.0;
+			if (fabs(B_2) < fabs(c))
+			{
+				e = ((c >= 0) ? a : -a);
+				e = -e + B_2*(B_2 / fabs(c));
+				d = sqrt(fabs(e))*sqrt(fabs(c));
+			} 
+			else
+			{ 
+				e = -((a / B_2)*(c / B_2)) + 1.0;
+				d = sqrt(fabs(e))*(fabs(B_2));
+			} 
+
+			if (e >= 0) /* Real zeros */
+			{
+				d = ((B_2 >= 0) ? -d : d);
+				x2 = (-B_2 + d) / a;
+				x1 = ((x2 != 0) ? (c / (x2)) / a : x1);
+			} // End if (e >= 0)
+			else /*  Complex conjugate zeros */
+			{
+				x2 = x1 = -(B_2 / a);
+				xi = fabs(d / a);
+
+			}
+			return xi;
 		}
+
+		
+
 
 		/** 
 		Trova le radici reali dell'equazione 
@@ -150,12 +157,50 @@ namespace  Math
 			{
 				th = acos(R/sqrt(- Q3)) ;
 				z1 = 2.*sqrt(-Q) * cos(th/3.) - a2/3. ;
-				z2 = 2.*sqrt(-Q) * cos((th + 2.* Pi )/3.) - a2/3. ;
+				z2 = 2.*sqrt(-Q) * cos((th + two_Pi )/3.) - a2/3. ;
 				z3 = 2.*sqrt(-Q) * cos((th + 4.* Pi )/3.) - a2/3. ;
 				im = 0.;
 
 			}
 			return im;// imaginary part
+		}
+
+
+
+
+		/** determina le radici reali di un polinomio di grado minore o uguale a 3
+		a0 + a1 x + a2 x^2 + a3 x^3 =0
+		Ritorna il numero n delle radici reali e distinte e le radici zj,  per j <=n
+		*/
+		inline  int poly_real_root(double a3, double a2, double  a1, double  a0, double&  z1, double& z2, double&  z3)
+		{
+
+			// se il grado è inferiore a 3
+			if (a3 == 0.0)
+			{
+				// equazione lineare
+				if (a2 == 0)
+				{
+					if (a1 == 0)
+						return 0;
+					z1 = -a0 / a1;
+					return 1;
+
+				}
+				// equazione quadratica
+				if (poly2_root(a2, a1, a0, z1, z2) != 0)
+					return 0;
+				if (z1 == z2)
+					return 1;
+				return 2;
+			}
+
+			// equazione cubica
+			if (poly3_root(a2 / a3, a1 / a3, a0 / a3, z1, z2, z3) != 0.0)
+				return 1;
+			if (z2 == z3)
+				return 2;
+			return 3;
 		}
 
 
@@ -227,6 +272,12 @@ namespace  Math
 				return de;
 			}
 
+			static void transpose(double* A)
+			{
+				std::swap(A[1], A[2]);
+			}
+
+
 			// risolve il sistema lineare A x=b e torna il determinante di A
 			static T	solve(const T* A, const T* b, T* x)
 			{
@@ -235,7 +286,8 @@ namespace  Math
 					return T(0);
 				x[0]= ( A[3] * b[0] - A[1] * b[1])/de;
 				x[1]= (-A[2] * b[0] + A[0] * b[1])/de;
-				return det;
+
+				return de;
 			}
 
 
@@ -254,6 +306,13 @@ namespace  Math
 					A[7] * ( A[2]*A[3] - A[0]*A[5] );
 			}
 
+
+			static void transpose(double* A)
+			{
+				std::swap(A[1], A[3]);
+				std::swap(A[2], A[6]);
+				std::swap(A[5], A[7]);
+			}
 
 			static T   inv( double* A)
 			{

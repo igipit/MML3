@@ -24,8 +24,8 @@ const double* gauss_quadrature::getW(int ngp)
 
 
 //////////////////////////////////////////////////////////////////////
-// Implementazione formule di quadratura 1D
-//i punti sono verificati essere le radici dei polinomi di Legendre. Sui libri c'è spesso qualche cifra sbagliata
+// Implementazione formule di quadratura 1D sul dominio standard [-1,+1]
+// i punti sono verificati e sono le radici dei polinomi di Legendre. Sui libri c'è spesso qualche cifra sbagliata
 // http://pomax.github.io/bezierinfo/legendre-gauss.html
 
 

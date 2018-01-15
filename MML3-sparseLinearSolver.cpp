@@ -106,53 +106,61 @@ namespace MML3
 				pardiso_iparam.data(), &pardiso_msglvl, 0, 0, &pardiso_error);
 
 	if (pardiso_error != 0) 
-	{
 		log << "riordino e fattorizzazione simbolica falliti, codice: " << pardiso_error << "\n";
-		return -11;
-	}
-	log <<	"\tRiordino e fattorizzazione simbolica completata" 
-		<<	"\n\t\tFactor NNZ=" <<  pardiso_iparam(18) 
-		<<	"\n\t\tMFLOPS    ="	<<  pardiso_iparam(19);
+	else
+		log <<	"\nRiordino e fattorizzazione simbolica completata" 
+			<<	"\n\tFactor NNZ  =" <<  pardiso_iparam(18) 
+			<<  "\n\tPeak mem[kb]=" <<   pardiso_iparam(15)
+			<<	"\n\tMFLOPS      =" <<  pardiso_iparam(19);
 
 
 	// --------------------------------------------------------------------
 	// Numerical factorization.
 	// --------------------------------------------------------------------
-	pardiso_phase = 22;
-	PARDISO(	pardiso_pt.data(), &pardiso_maxfct, &pardiso_mnum, &pardiso_mtype, &pardiso_phase, 
-				&pardiso_n, pardiso_a, pardiso_ia, pardiso_ja, pardiso_perm.data(), &pardiso_nrhs, 
-				pardiso_iparam.data(), &pardiso_msglvl, 0, 0, &pardiso_error);
-
-	if (pardiso_error != 0) 
+	if (!pardiso_error)
 	{
-		log << " fattorizzazione numerica fallita, codice pardiso=" << pardiso_error << "\n";
-		if (pardiso_error == -4)
+		pardiso_phase = 22;
+		PARDISO(pardiso_pt.data(), &pardiso_maxfct, &pardiso_mnum, &pardiso_mtype, &pardiso_phase,
+			&pardiso_n, pardiso_a, pardiso_ia, pardiso_ja, pardiso_perm.data(), &pardiso_nrhs,
+			pardiso_iparam.data(), &pardiso_msglvl, 0, 0, &pardiso_error);
+
+		if (pardiso_error != 0)
 		{
-			log << "la matrice di sistema e' singolare \n";
+			log << " fattorizzazione numerica fallita, codice pardiso=" << pardiso_error << "\n";
+			if (pardiso_error == -4)
+			{
+				log << "la matrice di sistema e' singolare \n";
+			}
+	
 		}
-		return -22;
+		else
+			log << "\nFattorizzazione numerica completata con successo"
+				<< "\n\tMFLOPS    =" << pardiso_iparam(19);
 	}
 		
 
 	// --------------------------------------------------------------------*/
 	//  Back substitution and iterative refinement. */
 	// --------------------------------------------------------------------*/
-	pardiso_phase = 33;
-	pardiso_nrhs=B.nrows();
-	pardiso_iparam(6)  = 1;  // Write solution into B. Attenzione, anche se lo 
-	// pongo ad 1 in modo che la soluzione sovrascriva B, X viene comunque usato
-	// come array di lavoro e deve essere un array n*nrhs
-	Matrix<double, M_PROP::GE, M_SHAPE::RE, M_ORD::COL> X(pardiso_n, pardiso_nrhs);
-	
-	
-	PARDISO(	pardiso_pt.data(), &pardiso_maxfct, &pardiso_mnum, &pardiso_mtype, &pardiso_phase, 
-				&pardiso_n, pardiso_a, pardiso_ia, pardiso_ja, pardiso_perm.data(), &pardiso_nrhs, 
-				pardiso_iparam.data(), &pardiso_msglvl, B.data(), X.data(), &pardiso_error);
-
-	if (pardiso_error != 0) 
+	if (!pardiso_error)
 	{
-		log << "Errore nella fase  di sostituzione all'indietro e rifinitura iteritava, codice: " << pardiso_error << "\n";
-		return -33;
+		pardiso_phase = 33;
+		pardiso_nrhs = B.ncols();
+		pardiso_iparam(6) = 1;  // Write solution into B. Attenzione, anche se lo 
+		// pongo ad 1 in modo che la soluzione sovrascriva B, X viene comunque usato
+		// come array di lavoro e deve essere un array n*nrhs
+		Matrix<double, M_PROP::GE, M_SHAPE::RE, M_ORD::COL> X(pardiso_n, pardiso_nrhs);
+
+
+		PARDISO(pardiso_pt.data(), &pardiso_maxfct, &pardiso_mnum, &pardiso_mtype, &pardiso_phase,
+			&pardiso_n, pardiso_a, pardiso_ia, pardiso_ja, pardiso_perm.data(), &pardiso_nrhs,
+			pardiso_iparam.data(), &pardiso_msglvl, B.data(), X.data(), &pardiso_error);
+
+		if (pardiso_error != 0)
+			log << "Errore nella fase  di sostituzione all'indietro e rifinitura iteritava, codice: " << pardiso_error << "\n";
+		else
+			log << "\nSoluzione del sistema completata con successo"
+				<< "\n\tMFLOPS    =" << pardiso_iparam(19);
 	}
 	
 
@@ -165,7 +173,7 @@ namespace MML3
 				pardiso_iparam.data(), &pardiso_msglvl, 0, 0, &pardiso_error);
 
 
-	return 0;
+	return pardiso_error;
 		
 }
 

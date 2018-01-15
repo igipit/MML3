@@ -25,7 +25,7 @@ public:
 		}
 		return ngp;
 	}
-	// torna un puntatore agli ngp punti dela formula di quadratura o zero se la formula non e' implementata 
+	// torna un puntatore agli ngp punti della formula di quadratura o zero se la formula non e' implementata 
 	static const double*	getX(int ngp);
 	// torna un puntatore agli ngp pesi della formula di quadratura o zero se la formula non e' implementata 
 	static const double*	getW(int ngp);

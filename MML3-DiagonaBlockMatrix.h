@@ -53,6 +53,8 @@ namespace MML3
 		typedef typename BMAT::value_t		value_t;
 
 		DiagonalBlockMatrix(size_t nb):block_(nb){}
+
+
 		size_t	nblocks()const{ return block_.size(); }
 		const BMAT& operator ()(size_t i)const{ return block_[i - 1].get(); }
 		const BMAT& operator [](size_t i)const{ return block_[i].get(); }
@@ -93,86 +95,83 @@ namespace MML3
 	};
 
 
+	namespace Algorithm{
 
-	//C= Diag * A  
-	template<typename BMAT, typename MAT>
-	MAT&  product_Diag_A(const DiagonalBlockMatrix<BMAT>& D, const MAT& A, MAT& C)
-	{
-
-		typedef typename BMAT::value_t value_t;
-		size_t Dsz = D.ncols();
-		if (Dsz != A.nrows() )
-			throw std::range_error("product_Diag_A(...): incompatible dimensions");
-		try
+		//C= Diag * A  
+		template<typename BMAT, typename MAT>
+		MAT&  product_Diag_A(const DiagonalBlockMatrix<BMAT>& D, const MAT& A, MAT& C)
 		{
-			C.resize(Dsz, A.ncols());
-		}
-		catch (...)
-		{
-			throw std::range_error("product_Diag_A(...): destination matrix C not resizeable");
-		}
 
-		size_t nblocks = D.nblocks();
+			typedef typename BMAT::value_t value_t;
+			size_t Dsz = D.ncols();
+			size_t Anc = A.ncols();
+			if (Dsz != A.nrows())
+				throw std::range_error("product_Diag_A(...): incompatible dimensions");
 
-		size_t I = 1;
-		for (size_t i = 0; i != nblocks; ++i)
-		{
-			const BMAT& Di = D(i+1);
-			size_t bsize = Di.nrows();
-			size_t J = 1;
-			for (size_t j = 0; j != nblocks; ++j)
+			assert(&A != &C);
+			try
 			{
-				
-					for (size_t a = 0; a != bsize; ++a)
-					{
-						for (size_t b = 0; b != bsize; ++b)
-						{
-							value_t acc = 0.;
-							for (size_t c = 0; c != bsize; ++c)
-								acc += Di(a + 1, c + 1)*A(I + c, J + b);
-							C(I + a, J + b) = acc;
-						}
-					}
-				
-				J += bsize;
+				C.resize(Dsz, Anc);
 			}
-			I += bsize;
-		}
-
-		return C;
-	}
-
-
-
-	//C= Diag' * A  
-	template<typename BMAT, typename MAT>
-	MAT&  product_DiagT_A(const DiagonalBlockMatrix<BMAT>& D, const MAT& A, MAT& C)
-	{
-
-		typedef typename BMAT::value_t value_t;
-		size_t Dsz = D.ncols();
-		if (Dsz != A.nrows())
-			throw std::range_error("product_DiagT_A(...): incompatible dimensions");
-		try
-		{
-			C.resize(Dsz, A.ncols());
-		}
-		catch (...)
-		{
-			throw std::range_error("product_DiagT_A(...): destination matrix C not resizeable");
-		}
-
-
-		size_t nblocks = D.nblocks();
-
-		size_t I = 1;
-		for (size_t i = 0; i != nblocks; ++i)
-		{
-			const BMAT& Di = D(i+1);
-			size_t bsize = Di.nrows();
-			size_t J = 1;
-			for (size_t j = 0; j != nblocks;++j)
+			catch (...)
 			{
+				throw std::range_error("product_Diag_A(...): destination matrix C not resizeable");
+			}
+
+			size_t nblocks = D.nblocks();
+
+			size_t I = 0;
+			for (size_t i = 1; i <= nblocks; ++i)
+			{
+				const BMAT& Di = D(i);
+				size_t bsize = Di.nrows();
+				for (size_t a = 1; a <= bsize; ++a)
+				{
+					for (size_t b = 1; b <= Anc; ++b)
+					{
+						value_t acc = 0.;
+						for (size_t c = 1; c <= bsize; ++c)
+							acc += Di(a, c)*A(I + c, b);
+						C(I + a, b) = acc;
+					}
+				}
+				I += bsize;
+			}
+			return C;
+		}
+
+
+
+		//C= Diag' * A  
+		template<typename BMAT, typename MAT>
+		MAT&  product_DiagT_A(const DiagonalBlockMatrix<BMAT>& D, const MAT& A, MAT& C=MAT())
+		{
+
+			typedef typename BMAT::value_t value_t;
+			size_t Dsz = D.ncols();
+			if (Dsz != A.nrows())
+				throw std::range_error("product_DiagT_A(...): incompatible dimensions");
+			assert(&A != &C);
+			try
+			{
+				C.resize(Dsz, A.ncols());
+			}
+			catch (...)
+			{
+				throw std::range_error("product_DiagT_A(...): destination matrix C not resizeable");
+			}
+
+
+			size_t nblocks = D.nblocks();
+
+			size_t I = 1;
+			for (size_t i = 0; i != nblocks; ++i)
+			{
+				const BMAT& Di = D(i + 1);
+				size_t bsize = Di.nrows();
+				size_t J = 1;
+				for (size_t j = 0; j != nblocks; ++j)
+				{
 					for (size_t a = 0; a != bsize; ++a)
 					{
 						for (size_t b = 0; b != bsize; ++b)
@@ -183,66 +182,70 @@ namespace MML3
 							C(I + a, J + b) = acc;
 						}
 					}
-				
 
-				J += bsize;
+
+					J += bsize;
+				}
+				I += bsize;
 			}
-			I += bsize;
-		}
-		return C;
+			return C;
 
-	}
-
-	// C = Diag' * A * Diag
-	template<typename BMAT, typename MAT>
-	MAT& product_DiagT_A_Diag(const DiagonalBlockMatrix<BMAT>& D, const MAT& A, MAT& C)
-	{
-
-		typedef typename BMAT::value_t value_t;
-		size_t Dsz = D.ncols();
-		
-		if (Dsz != A.nrows() || Dsz != A.ncols() )
-			throw std::range_error("product_DiagT_A_Diag(const DiagonalBlockMatrix<BMAT>& D, const MAT& B, MAT& C): incompatible dimensions");
-		try
-		{
-			C.resize(Dsz, Dsz);
-		}
-		catch (...)
-		{
-			throw std::range_error("product_DiagT_A_Diag(...): destination matrix C not resizeable");
 		}
 
-
-		size_t nblocks = D.nblocks();
-
-		size_t I = 1;
-		for (size_t i = 0; i != nblocks; ++i)
+		// C = Diag' * A * Diag
+		template<typename BMAT, typename MAT>
+		MAT& product_DiagT_A_Diag(const DiagonalBlockMatrix<BMAT>& D, const MAT& A, MAT& C=MAT())
 		{
-			const BMAT& Di = D(i+1);
-			size_t bsize = Di.nrows();
-			size_t J = 1;
-			for (size_t j = 0; j != nblocks;++j)
+
+			typedef typename BMAT::value_t value_t;
+			size_t Dsz = D.ncols();
+
+			if (Dsz != A.nrows() || Dsz != A.ncols())
+				throw std::range_error("product_DiagT_A_Diag(const DiagonalBlockMatrix<BMAT>& D, const MAT& B, MAT& C): incompatible dimensions");
+
+			assert(&A != &C);
+			try
 			{
+				C.resize(Dsz, Dsz);
+			}
+			catch (...)
+			{
+				throw std::range_error("product_DiagT_A_Diag(...): destination matrix C not resizeable");
+			}
+
+
+			size_t nblocks = D.nblocks();
+
+			size_t I = 1;
+			for (size_t i = 0; i != nblocks; ++i)
+			{
+				const BMAT& Di = D(i + 1);
+				size_t bsize = Di.nrows();
+				size_t J = 1;
+				for (size_t j = 0; j != nblocks; ++j)
+				{
 					for (size_t a = 0; a != bsize; ++a)
 					{
 						for (size_t b = 0; b != bsize; ++b)
 						{
 							value_t acc = 0;
 							for (size_t c = 0; c != bsize; ++c)
-							for (size_t d = 0; d != bsize; ++d)
-								acc += Di(c + 1, a + 1)*A(I + c, J + d) * Di(d+1,b+1);
+								for (size_t d = 0; d != bsize; ++d)
+									acc += Di(c + 1, a + 1)*A(I + c, J + d) * Di(d + 1, b + 1);
 							C(I + a, J + b) = acc;
 						}
 					}
-				J += bsize;
+					J += bsize;
+				}
+				I += bsize;
 			}
-			I += bsize;
+			return C;
 		}
-		return C;
-	}
+
+	}// end namespace Algorithm
 	
 
 
-}
+} // end namespace MML3
 
 #endif

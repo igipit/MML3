@@ -1,13 +1,33 @@
-#pragma once
+#ifndef _PI_MULTI_VARIABLE_STRING_H_
+#define _PI_MULTI_VARIABLE_STRING_H_
+
 #include<string>
 #include<map>
 #include <regex>
 #include<tchar.h>
+#include<algorithm>
+
+#include"PI-StringStringSet.h"
 
 namespace PI
 {
-///classe multi variable string
-///gestisce il formato MVS
+
+	// definisco un comparatore di stringhe che ignora il caso minuscolo o maiuscolo
+
+
+
+
+
+	
+
+		
+
+
+		///classe multi variable string
+		///gestisce il formato MVS
+
+
+
 
 	template<typename CHT>
 	class basic_mvs;
@@ -16,8 +36,8 @@ namespace PI
 	class basic_mvs<char>
 	{
 	public:
-		typedef char					char_t;
-		typedef std::basic_string<char_t>		string_t;
+		typedef char						char_t;
+		typedef std::basic_string<char_t>	string_t;
 		
 		template<typename T>
 		static string_t to_string(const T& v){ return std::to_string(v); }
@@ -96,15 +116,17 @@ namespace PI
 
 	};
 
+
+// NB: le stringhe vengono tutte convertite in small case
 template<typename CHT>
 class multi_variable_string :public basic_mvs<CHT>
 {
 	typedef basic_mvs<CHT>		base;
 public:
 	typedef typename base::char_t		char_t;
-	typedef typename base::string_t         string_t;
-	typedef std::map<string_t, string_t>	ssmap;
-	typedef ssmap				var_set;
+	typedef typename base::string_t     string_t;
+	typedef istring_istring_set<char_t>	ssmap;
+	typedef ssmap						var_set;
 
 
 	/// genera una variabile indicizzata nel formato "var(i)"
@@ -123,7 +145,7 @@ public:
 	{
 		// siccome questa funzione può essere chiamata molte volte, dichiaro regex di tipo statico
 		// in modo che l'espressione venga compilata una sola volta per tutte
-		std::regex e("[\\s]*[[:alpha:]]+[a-zA-Z_0-9\\$\\.\\-]*\\([\\s]*([[:digit:]])+[\\s]*\\)[.]*");
+		static std::regex e("[\\s]*[[:alpha:]]+[a-zA-Z_0-9\\$\\.\\-]*\\([\\s]*([[:digit:]])+[\\s]*\\)[.]*");
 		
 		std::smatch result;
 		string_t var_value;
@@ -191,7 +213,7 @@ public:
 		// 10-05-2011 nuovo
 		// [\\s]* : 0 o +  spazi 
 		std::smatch result;
-		std::regex e("[\\s]*[,]?\\<" + var_name + "[\\s]*=[\\s]*([a-zA-Z0-9_\\(\\)\\.\\-@]*)[\\s]*(?:[,;]|$)");
+		static std::regex e("[\\s]*[,]?\\<" + var_name + "[\\s]*=[\\s]*([a-zA-Z0-9_\\(\\)\\.\\-@]*)[\\s]*(?:[,;]|$)");
 		if (std::regex_search(source, result, e))
 		{
 			var_value = result[1];
@@ -212,7 +234,7 @@ public:
 		//la prima espressione tra parentesi tonda contiene il nome della variabile
 		//la seconda il valore in formato stringa con caratteri aggiuntivi { _ . - @} 
 		//static STRING		name_format="[\\s]*([\\w\\.\\d]*)[\\s]*=[\\s]*([a-zA-Z0-9_ \\.\\-@\\s]*)";
-		static string_t		name_format=_T("[\\s]*([\\w\\.\\d]*)[\\s]*=[\\s]*([a-zA-Z0-9_\\.\\-@]*)[\\s]*");
+		string_t		name_format=_T("[\\s]*([\\w\\.\\d]*)[\\s]*=[\\s]*([a-zA-Z0-9_\\.\\-@]*)[\\s]*");
 		std::smatch	match;
 		string_t		part;
 		var_set.clear();
@@ -248,3 +270,4 @@ public:
 
 
 } // end namespaces PI
+#endif
