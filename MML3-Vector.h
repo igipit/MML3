@@ -45,15 +45,15 @@ namespace MML3
 		// ci pensa il costruttore di base_ a verificare se il tipo Iter e' un iteratore
 		template<class Iter>
 		Vector(Iter beg, Iter end) : base_(beg, end){}
-	
-
 		Vector(const std::initializer_list<T>& s)				:base_(s){}
 		~Vector()= default;
 
 
-		Vector& resize(size_t sz){ base_::resize(sz); return *this;}
+		Vector&		resize(size_t sz){ base_::resize(sz); return *this;}
+		
 		// cast operator to std::vector<T>
-		operator base_(){ return *this; }
+		operator	base_(){ return *this; }
+
 		Vector&		swap(Vector& o)								{ base_::swap(o); return *this; }
 		Vector&		operator=(const Vector& o)					{ base_::operator=(o); return *this; }
 		Vector&		operator=(T val)							{ return fill(val); }
@@ -66,16 +66,16 @@ namespace MML3
 		}
 		
 		
-		Vector&		fill(T val)									{ std::fill_n(data(),size(), val); return *this; }
+		Vector&		fill(T val)						{ std::fill_n(data(),size(), val); return *this; }
 
 #ifdef MML3_TEST_INDEX_ON_ACCESS
-		T&		operator[](size_t i)				{ return base_::at(i);}
+		T&			operator[](size_t i)			{ return base_::at(i);}
 		const T&	operator[](size_t i)const		{ return base_::at(i); }
 		// ACCESSORS 1-BASED
-		T&		operator()(size_t i)				{ return base_::at(i - Base_); }
+		T&			operator()(size_t i)			{ return base_::at(i - Base_); }
 		const T&	operator()(size_t i)const		{ return base_::at(i - Base_); }
 #else
-		T&		operator()(size_t i)				{ return base_::operator[](i - Base_); }
+		T&			operator()(size_t i)			{ return base_::operator[](i - Base_); }
 		const T&	operator()(size_t i)const		{ return base_::operator[](i - Base_); }
 #endif
 
